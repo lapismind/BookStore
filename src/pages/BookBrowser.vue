@@ -1,5 +1,9 @@
 <template>
   <div>
+    <!-- Dropdown component with Reader component inside -->
+    <Dropdown triggerText="User Icon">
+      <ReaderInfo :reader="reader" />
+    </Dropdown>
     <!-- 使用 v-for 渲染多本书籍 -->
     <BookDetails
       v-for="book in books"
@@ -13,11 +17,15 @@
 
 <script>
 import BookDetails from "@/components/BookDetails.vue";
+import ReaderInfo from "@/components/ReaderInfo.vue";
+import Dropdown from "@/components/Dropdown.vue";
 import axios from "axios";
 
 export default {
   components: {
     BookDetails,
+    ReaderInfo,
+    Dropdown,
   },
   data() {
     return {
