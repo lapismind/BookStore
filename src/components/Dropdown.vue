@@ -1,8 +1,7 @@
 <template>
   <div class="dropdown">
     <button @click="toggleDropdown" class="dropdown-button">
-      <!-- 使用 Font Awesome 用户图标 -->
-      <font-awesome-icon :icon="['fas', 'user-circle']" />
+      <img src="@/assets/user.svg" alt="用户图标" class="dropdown-avatar" />
     </button>
     <transition name="fade">
       <div v-if="isOpen" class="dropdown-content">
@@ -36,18 +35,24 @@ export default {
 <style scoped>
 .dropdown {
   position: fixed;
-  top: 20px; /* 增加顶部距离 */
-  right: 20px; /* 增加右侧距离 */
+  top: 10px;
+  right: 10px;
 }
 
 .dropdown-button {
-  padding: 15px; /* 增加按钮内边距 */
+  padding: 0px;
   background-color: #fff;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .dropdown-content {
@@ -55,14 +60,13 @@ export default {
   right: 0;
   top: 100%;
   background-color: #f9f9f9;
-  min-width: 200px; /* 增加最小宽度 */
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  min-width: 180px;
   z-index: 1;
 }
 
 .dropdown-content a {
   color: black;
-  padding: 15px 20px; /* 增加链接内边距 */
+  padding: 15px 20px;
   text-decoration: none;
   display: block;
 }

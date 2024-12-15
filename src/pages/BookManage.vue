@@ -1,7 +1,11 @@
 <!-- BookManage.vue -->
 <template>
   <div class="book-manage">
-    <h1>书籍库存管理</h1>
+    <router-link to="/book-manage" class="nav-link">书籍库存管理</router-link> |
+    <router-link to="/order-manage" class="nav-link">用户订单管理</router-link> |
+    <router-link to="/home" class="nav-link">退出管理页面</router-link>
+    <hr>
+    <router-view></router-view>
     <div class="button-group">
       <button @click="showRestockModal = true" class="action-button">
         新增采购单
@@ -106,10 +110,6 @@ export default {
   padding: 20px;
 }
 
-.book-manage h1 {
-  color: #333;
-}
-
 .book-manage table {
   width: 100%;
   border-collapse: collapse;
@@ -134,33 +134,5 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-}
-
-.action-button {
-  padding: 8px 16px;
-  margin-right: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s, transform 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.action-button:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-}
-
-.action-button:active {
-  background-color: #0056b3;
-  transform: translateY(2px);
-}
-
-.action-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
 }
 </style>

@@ -2,11 +2,11 @@
 <template>
   <div class="reader">
     <div class="reader-header">
-      <img src="path-to-your-image.png" alt="我是头像" class="reader-avatar" />
+      <img src="@/assets/user.svg" alt="我是头像" class="reader-avatar" />
     </div>
     <p>UID：{{ reader.reader_id }}</p>
     <p>{{ reader.user_id }}</p>
-    <p>我的余额：{{ reader.balance }}</p>
+    <p>我的余额：{{ parseFloat(reader.balance).toFixed(2) }}</p>
     <p>信用等级：{{ reader.credit_level }}</p>
 
     <div class="options">
@@ -19,6 +19,7 @@
       <a href="javascript:void(0);" class="option" @click="handleRecharge">
         余额充值
       </a>
+      <hr class="divider">
       <a href="javascript:void(0);" class="option" @click="handleLogout">
         退出登录
       </a>
@@ -46,7 +47,10 @@ export default {
       // 处理余额充值逻辑
     },
     handleLogout() {
-      // 处理退出登录逻辑
+      const isConfirmed = confirm("真退吗哥？");
+      if (isConfirmed) {
+        this.$router.push('/home');
+      }
     },
   },
 };
@@ -89,5 +93,11 @@ export default {
 
 .option:hover {
   color: #0056b3;
+}
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 10px 0;
 }
 </style>

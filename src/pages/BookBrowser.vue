@@ -16,10 +16,10 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import BookDetails from "@/components/BookDetails.vue";
 import ReaderInfo from "@/components/ReaderInfo.vue";
 import Dropdown from "@/components/Dropdown.vue";
-import axios from "axios";
 
 export default {
   components: {
@@ -27,54 +27,13 @@ export default {
     ReaderInfo,
     Dropdown,
   },
-  data() {
-    return {
-      books: [], // Initializing the 'book' object, which will be populated later
-      reader: null, // Adding a 'reader' object to hold user information
-    };
-  },
-  mounted() {
-    // Simulating the API response for books
-    this.books = [
-      {
-        book_id: 1,
-        title: "Java Programming",
-        publication_date: "2020-05-01",
-        price: 39.99,
-        author: "xyz",
-        publisher: "TechBooks",
-        keywords: "Java, programming, technology",
-        total_stock: 150,
-        supplier: "Tech Supplier Ltd.",
-        series_id: 2,
-      },
-      // 添加更多书籍信息...
-      {
-        book_id: 2,
-        title: "编译原理",
-        publication_date: "2020-06-01",
-        price: 20.0,
-        author: "hwq",
-        publisher: "TechBooks",
-        keywords: "humor，shabby",
-        total_stock: 10,
-        supplier: "Tech Supplier Ltd.",
-        series_id: 4,
-      },
-    ];
-
-    // Simulating the reader (user) data
-    this.reader = {
-      reader_id: 101, // Unique reader ID
-      user_id: "user123", // User identifier
-      address: "515", // User's address
-      balance: 150.0, // User's balance
-      credit_level: 3, // User's credit level (e.g., 1-5 scale)
-    };
+  computed: {
+    ...mapState('book', ['books']),
+    ...mapState('user', ['reader']),
   },
   methods: {
     updateReader(updatedReader) {
-      this.reader = updatedReader;
+      this.$store.commit('user/SET_READER', updatedReader);
     },
   },
 };

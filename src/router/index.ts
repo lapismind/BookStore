@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import BookBrowser from "@/pages/BookBrowser.vue";
 import BookManage from "@/pages/BookManage.vue";
+import OrderManage from "@/pages/OrderManage.vue";
 import Home from "@/pages/Home.vue";
 
 const routes = [
@@ -17,6 +18,11 @@ const routes = [
     path: "/book-manage",
     name: "BookManage",
     component: BookManage,
+  },
+  {
+    path: "/order-manage",
+    name: "OrderManage",
+    component: OrderManage,
   },
   {
     path: "/home",
