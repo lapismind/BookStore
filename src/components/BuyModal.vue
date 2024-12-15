@@ -1,3 +1,4 @@
+<!-- BuyModal.vue -->
 <template>
   <div v-if="visible" class="modal">
     <div class="modal-content">
@@ -42,30 +43,48 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    visible: Boolean,
-    book: Object,
-    reader: Object,
-  },
-  methods: {
-    confirmPurchase() {
-      // 检查余额是否足够
-      if (this.reader.balance >= this.book.price) {
-        // 如果余额足够，执行购买逻辑
-        this.reader.balance -= this.book.price; // 更新余额
-        this.$emit("update-reader", this.reader); // 触发事件，传递更新后的 reader 对象
-        this.$emit("cancel"); // 关闭弹窗
-        alert("购买成功！");
-      } else {
-        // 如果余额不足，给出提示
-        alert("该充钱了兄弟XD");
-      }
-    },
-  },
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue';
+import { useStore } from 'vuex';
+import { Book, Reader, Order } from '@/store/modules/types'; // 导入 Book, Reader, Order 接口
+
+const props = defineProps<{
+  visible: boolean;
+  book: Book;
+  reader: Reader;
+}>();
+
+const emit = defineEmits(['cancel', 'update-reader']);
+
+const store = useStore();
+
+const confirmPurchase = () => {
+  if (props.reader.balance >= props.book.price) {
+    const updatedReader = { ...props.reader, balance: props.reader.balance - props.book.price };
+    emit('update-reader', updatedReader);
+
+    const order: Order = {
+      order_id: Date.now(),
+      reader_id: props.reader.reader_id,
+      book_id: props.book.book_id,
+      quantity: 1,
+      price: props.book.price,
+      order_date: new Date().toISOString(), // 使用 ISO 格式的日期字符串
+      description: `Order for book ${props.book.title}`,
+      shipping_address: props.reader.address,
+      status: 'pending',
+    };
+
+    store.dispatch('order/addOrder', order); // 调用 Vuex store 的 addOrder action
+
+    emit('cancel');
+    alert('下单成功！');
+  } else {
+    alert('该充钱了兄弟XD');
+  }
 };
 </script>
+
 
 <style scoped>
 .modal {
@@ -88,7 +107,7 @@ export default {
 }
 
 .modal-header {
-  font-size: 24px; /* 加大标题 */
+  font-size: 24px;
   margin-bottom: 10px;
 }
 
@@ -103,9 +122,9 @@ export default {
 }
 
 .divider {
-  height: 1px; /* 分割线高度 */
-  background-color: #ddd; /* 分割线颜色 */
-  margin: 20px 0; /* 分割线与上下内容的间距 */
+  height: 1px;
+  background-color: #ddd;
+  margin: 20px 0;
 }
 
 .modal-actions {

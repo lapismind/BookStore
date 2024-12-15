@@ -1,11 +1,13 @@
-// store/index.js
+// store/index.ts
 import { createStore } from 'vuex';
-import user from '@/store/modules/user';
-import book from "@/store/modules/book";
+import bookModule from './modules/book';
+import userModule from './modules/user';
+import orderModule from './modules/order';
 
 export default createStore({
   modules: {
-    user,
-    book
-  }
+    book: bookModule,
+    user: userModule,
+    order: orderModule,
+  },
 });

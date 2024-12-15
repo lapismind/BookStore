@@ -10,6 +10,7 @@ export interface Reader {
 export interface Book {
   book_id: number;
   title: string;
+  author: string;
   publication_date: Date;
   price: number;
   publisher: string;
@@ -46,7 +47,7 @@ export interface Order {
   book_id: number;
   quantity: number;
   price: number;
-  order_date: Date;
+  order_date: string;
   description: string;
   shipping_address: string;
   status: 'pending' | 'received' | 'shipped' | 'canceled';

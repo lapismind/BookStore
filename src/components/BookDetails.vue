@@ -1,3 +1,4 @@
+// BookDetails.vue
 <template>
   <div v-if="book" class="book-details">
     <!-- 书名 -->
@@ -34,29 +35,37 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 import BuyModal from "@/components/BuyModal.vue";
+import { Book, Reader } from '@/store/modules/types';
 
-export default {
+export default defineComponent({
+  name: "BookDetails",
   components: {
     BuyModal,
   },
   props: {
-    book: Object, // 从父组件接收 book 数据
-    reader: Object, // 从父组件接收 userBalance 数据
+    book: {
+      type: Object as PropType<Book>,
+      required: true,
+    },
+    reader: {
+      type: Object as PropType<Reader>,
+      required: true,
+    },
   },
   data() {
     return {
-      showBuyModal: false, // 控制弹窗显示
+      showBuyModal: false,
     };
   },
   methods: {
-    handlePurchase(order) {
-      alert(`购买成功！\n余额: ¥${order.remainingBalance}`);
-      this.showBuyModal = false; // 关闭弹窗
+    updateReader(updatedReader: Reader) {
+      this.$emit('update-reader', updatedReader);
     },
   },
-};
+});
 </script>
 
 <style scoped>
@@ -96,25 +105,5 @@ export default {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 15px;
-}
-
-.buy-button-container {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.buy-button {
-  padding: 8px 15px;
-  font-size: 14px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.buy-button:hover {
-  background-color: #0056b3;
 }
 </style>

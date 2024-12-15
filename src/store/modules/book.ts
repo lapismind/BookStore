@@ -1,4 +1,4 @@
-// store/modules/book.ts
+
 export default {
   namespaced: true,
   state() {
