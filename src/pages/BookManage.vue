@@ -48,6 +48,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import RestockForm from "@/components/RestockForm.vue";
 import ShortageRecord from "@/components/ShortageRecord.vue";
 
@@ -59,7 +60,6 @@ export default {
   },
   data() {
     return {
-      books: [],
       loading: false,
       error: null,
       showRestockModal: false,
@@ -68,46 +68,16 @@ export default {
       size: 3,
     };
   },
+  computed: {
+    ...mapState('book', ['books']),
+  },
   mounted() {
-    this.fetchBooks();
+    this.loading = true;
+    setTimeout(() => {
+      this.loading = false;
+    }, 1000);
   },
   methods: {
-    fetchBooks() {
-      this.loading = true;
-      this.error = null;
-      // 模拟 API 请求
-      setTimeout(() => {
-        this.loading = false;
-        // 模拟响应数据
-        this.books = [
-          {
-            book_id: 1,
-            title: "Java Programming",
-            publication_date: "2020-05-01",
-            price: 39.99,
-            author: "xyz",
-            publisher: "TechBooks",
-            keywords: "Java, programming, technology",
-            total_stock: 150,
-            supplier: "Tech Supplier Ltd.",
-            series_id: 2,
-          },
-          {
-            book_id: 2,
-            title: "编译原理",
-            publication_date: "2020-06-01",
-            price: 20.0,
-            author: "hwq",
-            publisher: "TechBooks",
-            keywords: "humor, shabby",
-            total_stock: 10,
-            supplier: "Tech Supplier Ltd.",
-            series_id: 4,
-          },
-          // 添加更多书籍信息...
-        ];
-      }, 1000); // 1秒后模拟响应
-    },
   },
 };
 </script>

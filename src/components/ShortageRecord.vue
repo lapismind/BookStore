@@ -8,11 +8,15 @@
         <div class="form-row">
           <div class="form-group">
             <label class="inline-label" for="bookId">书籍ID:</label>
-            <input type="text" id="bookId" v-model="newShortageRecord.book_id" required />
+            <input type="text" id="bookId" v-model.number="newShortageRecord.book_id" required />
+          </div>
+          <div class="form-group">
+            <label class="inline-label" for="bookTitle">书籍标题:</label>
+            <input type="text" id="bookTitle" :value="bookTitle" readonly />
           </div>
           <div class="form-group">
             <label class="inline-label" for="quantity">缺货数目:</label>
-            <input type="number" id="quantity" v-model="newShortageRecord.quantity" required />
+            <input type="number" id="quantity" v-model.number="newShortageRecord.quantity" required />
           </div>
           <button type="submit" class="action-button">登记</button>
         </div>
@@ -39,15 +43,16 @@
         </tbody>
       </table>
 
-      <button @click="$emit('close')" class="action-button">关闭</button>
+      <button @click="handleClose" class="action-button">关闭</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
-import type { BookShortage, ShortageRecordForm } from '@/store/modules/record';
+import { mapGetters } from 'vuex';
+import type { BookShortage } from '@/store/modules/types';
 
 const props = defineProps({
   visible: Boolean,
@@ -57,43 +62,51 @@ const emit = defineEmits(['close']);
 
 const store = useStore();
 
-// 定义缺书记录列表
-const shortageRecords = ref<BookShortage[]>([]);
+const { getBookById } = mapGetters({
+  getBookById: 'book/getBookById'
+});
 
-// 获取缺书记录
-const fetchShortageRecords = async () => {
-  // 假设 Vuex store 中有一个 action 来获取缺书记录
-  const records = await store.dispatch('book/fetchShortageRecords');
-  shortageRecords.value = records;
-};
-
-// 添加新的缺书记录
-const newShortageRecord = ref<ShortageRecordForm>({
+const newShortageRecord = ref<BookShortage>({
+  shortage_id: 0,
   book_id: 0,
   supplier: '',
   quantity: 0,
+  record_date: new Date(),
+});
+
+const shortageRecords = computed(() => store.getters['record/shortageRecords']);
+
+const bookTitle = computed(() => {
+  const book = getBookById();
+  return book ? book.title : '未知书籍';
+});
+
+onMounted(async () => {
+  await store.dispatch('record/fetchShortageRecords');
 });
 
 const addShortageRecord = async () => {
-  // 假设 Vuex store 中有一个 action 来添加缺书记录
-  await store.dispatch('book/addShortageRecord', newShortageRecord.value);
-  // 重新获取缺书记录
-  fetchShortageRecords();
-  // 重置表单
-  newShortageRecord.value = {
-    book_id: 0,
-    supplier: '',
-    quantity: 0,
-  };
+  try {
+    const newRecord = { ...newShortageRecord.value };
+    newRecord.shortage_id = Math.max(...shortageRecords.value.map((r: BookShortage) => r.shortage_id), 0) + 1;
+    newRecord.record_date = new Date(newRecord.record_date);
+    await store.dispatch('record/addShortageRecord', newRecord);
+    newShortageRecord.value = {
+      shortage_id: 0,
+      book_id: 0,
+      supplier: '',
+      quantity: 0,
+      record_date: new Date(),
+    };
+  } catch (error) {
+    console.error('Failed to add shortage record:', error);
+  }
 };
 
-onMounted(() => {
-  if (props.visible) {
-    fetchShortageRecords();
-  }
-});
+const handleClose = () => {
+  emit('close');
+};
 </script>
-
 <style scoped>
 .shortage-record {
   position: fixed;
@@ -112,29 +125,29 @@ onMounted(() => {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 600px; /* 增加宽度以提供更多空间 */
+  width: 800px;
 }
 
 .form-row {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 使输入框和按钮之间的空间均匀分布 */
+  justify-content: space-between;
   margin-bottom: 20px;
 }
 
 .form-group {
-  flex: 1; /* 使表单组占据相同的空间 */
+  flex: 1;
   display: flex;
-  align-items: center; /* 垂直居中对齐 */
+  align-items: center;
 }
 
 .inline-label {
-  margin-right: 10px; /* 标签和输入框之间的间距 */
-  white-space: nowrap; /* 防止标签换行 */
+  margin-right: 10px;
+  white-space: nowrap;
 }
 
 .form-group input {
-  width: 100px; /* 增加输入框宽度 */
+  width: 100px;
   padding: 4px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -145,7 +158,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  margin-bottom: 20px; /* 增加与关闭按钮的间距 */
+  margin-bottom: 20px;
 }
 
 table th, table td {

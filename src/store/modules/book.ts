@@ -1,3 +1,4 @@
+import { Book,BookList } from '@/store/modules/types';
 
 export default {
   namespaced: true,
@@ -7,9 +8,9 @@ export default {
         {
           book_id: 1,
           title: "Java Programming",
-          publication_date: "2020-05-01",
-          price: 39.99,
           author: "xyz",
+          publication_date: new Date("2020-05-01"),
+          price: 39.99,
           publisher: "TechBooks",
           keywords: "Java, programming, technology",
           total_stock: 150,
@@ -19,16 +20,21 @@ export default {
         {
           book_id: 2,
           title: "编译原理",
-          publication_date: "2020-06-01",
-          price: 20.0,
           author: "hwq",
+          publication_date: new Date("2020-06-01"),
+          price: 20.0,
           publisher: "TechBooks",
           keywords: "humor, shabby",
           total_stock: 10,
           supplier: "Tech Supplier Ltd.",
           series_id: 4,
         },
-      ]
+      ] as BookList
     };
+  },
+  getters: {
+    getBookById: (state: { books: BookList }) => (bookId: number) => {
+      return state.books.find((book: Book) => book.book_id === bookId);
+    },
   },
 };

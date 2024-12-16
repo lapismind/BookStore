@@ -20,6 +20,8 @@ export interface Book {
   series_id: number;
 }
 
+export type BookList = Book[];
+
 export interface Inventory {
   inventory_id: number;
   book_id: number;

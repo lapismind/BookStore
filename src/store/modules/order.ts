@@ -1,6 +1,6 @@
 // store/modules/order.ts
 import { GetterTree, MutationTree, ActionTree } from 'vuex';
-import { Order } from '@/store/modules/types'; // 确保导入 Order 接口
+import { Order } from '@/store/modules/types';
 
 interface OrderState {
   orders: Order[];
