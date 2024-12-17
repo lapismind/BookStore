@@ -43,6 +43,13 @@ export interface BookShortage {
   record_date: Date;
 }
 
+export interface Restock {
+  restock_id: number;
+  book_id: number;
+  inventory_id: number;
+  restock_date: Date;
+}
+
 export interface Order {
   order_id: number;
   reader_id: number;

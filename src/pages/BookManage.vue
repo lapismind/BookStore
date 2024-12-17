@@ -1,4 +1,3 @@
-<!-- BookManage.vue -->
 <template>
   <div class="book-manage">
     <router-link to="/book-manage" class="nav-link">书籍库存管理</router-link> |
@@ -7,11 +6,9 @@
     <hr>
     <router-view></router-view>
     <div class="button-group">
-      <button @click="showRestockModal = true" class="action-button">
-        新增采购单
-      </button>
-      <button @click="showShortageModal = true" class="action-button">缺货记录</button>
-      <button class="action-button">采购记录</button>
+      <button @click="showShortageModal = true" class="action-button">缺货登记</button>
+      <button @click="showRestockModal = true" class="action-button">采购记录</button>
+      <button @click="showProcurementModal = true" class="action-button">采购单</button>
     </div>
     <div v-if="loading">加载中...</div>
     <div v-if="error" class="error">{{ error }}</div>
@@ -36,7 +33,7 @@
       </tr>
       </tbody>
     </table>
-    <RestockForm
+    <RestockRecord
       :visible="showRestockModal"
       @close="showRestockModal = false"
     />
@@ -44,19 +41,25 @@
       :visible="showShortageModal"
       @close="showShortageModal = false"
     />
+    <ProcurementRecord
+      :visible="showProcurementModal"
+      @close="showProcurementModal = false"
+    />
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
-import RestockForm from "@/components/RestockForm.vue";
+import RestockRecord from "@/components/RestockRecord.vue";
 import ShortageRecord from "@/components/ShortageRecord.vue";
+import ProcurementRecord from "@/components/ProcurementRecord.vue";
 
 export default {
   name: "BookManage",
   components: {
-    RestockForm,
+    RestockRecord,
     ShortageRecord,
+    ProcurementRecord,
   },
   data() {
     return {
@@ -64,20 +67,13 @@ export default {
       error: null,
       showRestockModal: false,
       showShortageModal: false,
+      showProcurementModal: false,
       page: 1,
       size: 3,
     };
   },
   computed: {
     ...mapState('book', ['books']),
-  },
-  mounted() {
-    this.loading = true;
-    setTimeout(() => {
-      this.loading = false;
-    }, 1000);
-  },
-  methods: {
   },
 };
 </script>
