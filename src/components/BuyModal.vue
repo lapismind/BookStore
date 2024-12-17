@@ -69,13 +69,13 @@ const confirmPurchase = () => {
       book_id: props.book.book_id,
       quantity: 1,
       price: props.book.price,
-      order_date: new Date().toISOString(), // 使用 ISO 格式的日期字符串
+      order_date: new Date().toISOString(),
       description: `Order for book ${props.book.title}`,
       shipping_address: props.reader.address,
       status: 'pending',
     };
 
-    store.dispatch('order/addOrder', order); // 调用 Vuex store 的 addOrder action
+    store.dispatch('order/addOrder', order);
 
     emit('cancel');
     alert('下单成功！');

@@ -1,4 +1,4 @@
-import { Book,BookList } from '@/store/modules/types';
+import { Book, BookList } from '@/store/modules/types';
 
 export default {
   namespaced: true,
@@ -29,12 +29,28 @@ export default {
           supplier: "Tech Supplier Ltd.",
           series_id: 4,
         },
-      ] as BookList
+      ] as BookList,
+      bookIdCounter: 3, // Initialize the counter to the next available ID
     };
   },
   getters: {
     getBookById: (state: { books: BookList }) => (bookId: number) => {
       return state.books.find((book: Book) => book.book_id === bookId);
+    },
+  },
+  mutations: {
+    addBook(state: { books: BookList, bookIdCounter: number }, book: Book) {
+      book.book_id = state.bookIdCounter;
+      state.books.push(book);
+      state.bookIdCounter++; // Increment the counter
+    },
+    deleteBook(state: { books: BookList }, bookId: number) {
+      const index = state.books.findIndex((book: Book) => book.book_id === bookId);
+      state.books.splice(index, 1);
+    },
+    updateBook(state: { books: BookList }, book: Book) {
+      const index = state.books.findIndex((b: Book) => b.book_id === book.book_id);
+      state.books.splice(index, 1, book);
     },
   },
 };

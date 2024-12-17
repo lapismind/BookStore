@@ -10,7 +10,7 @@
       </div>
       <div class="navbar-dropdown">
         <Dropdown triggerText="User Icon">
-          <ReaderInfo :reader="reader" />
+          <ReaderInfo v-if="reader" :reader="reader" />
         </Dropdown>
       </div>
     </nav>
@@ -20,6 +20,7 @@
         v-for="book in books"
         :key="book.book_id"
         :book="book"
+        v-if="reader"
         :reader="reader"
         @update-reader="updateReader"
       />
@@ -39,15 +40,33 @@ export default {
     ReaderInfo,
     Dropdown,
   },
+  data() {
+    return {
+      reader: null,
+    };
+  },
   computed: {
     ...mapState('book', ['books']),
-    ...mapState('user', ['reader']),
-    ...mapState('order', ['orders']),
+    ...mapState('user', ['readers']),
+  },
+  watch: {
+    readers: {
+      immediate: true,
+      handler(newReaders) {
+        if (newReaders.length > 0) {
+          this.reader = newReaders[0];
+        }
+      },
+    },
   },
   methods: {
     updateReader(updatedReader) {
-      this.$store.commit('user/SET_READER', updatedReader);
+      this.$store.commit('user/UPDATE_READER', updatedReader);
+      this.reader = updatedReader;
     },
+  },
+  created() {
+    this.$store.dispatch('user/fetchReaders');
   },
 };
 </script>
@@ -94,7 +113,6 @@ export default {
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
-
 }
 
 .book-list > * {

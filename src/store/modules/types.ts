@@ -6,6 +6,7 @@ export interface Reader {
   balance: number;
   credit_level: number;
 }
+export type ReaderList = Reader[];
 
 export interface Book {
   book_id: number;
@@ -27,12 +28,6 @@ export interface Inventory {
   book_id: number;
   location: string;
   status: 'available' | 'reserved' | 'sold';
-}
-
-export interface Author {
-  author_id: number;
-  book_id: number;
-  name: string;
 }
 
 export interface BookShortage {
@@ -62,6 +57,13 @@ export interface Order {
   status: 'pending' | 'received' | 'shipped' | 'canceled';
 }
 
+export interface ProcurementOrder {
+  procurement_order_id: number;
+  book_id: number;
+  quantity: number;
+  status: 'pending' | 'processed' | 'completed';
+}
+
 export interface Supplier {
   supplier_id: number;
   name: string;
@@ -69,9 +71,8 @@ export interface Supplier {
   supply_info: string;
 }
 
-export interface ProcurementOrder {
-  procurement_order_id: number;
+export interface Author {
+  author_id: number;
   book_id: number;
-  quantity: number;
-  status: 'pending' | 'processed' | 'completed';
+  name: string;
 }

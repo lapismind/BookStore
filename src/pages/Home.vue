@@ -1,14 +1,16 @@
-<!-- Home.vue -->
 <template>
-  <div>
-    <!-- 导航链接到 BookBrowser 和 BookManage -->
+  <div class="container">
+    <h1 class="title">网上书店管理系统</h1>
     <nav class="nav-bar">
-      <router-link to="/book-browser" class="nav-link"
-        >Book Browser</router-link
-      >
-      <router-link to="/book-manage" class="nav-link">Book Manage</router-link>
+      <router-link to="/book-browser" class="nav-link">
+        <img src="@/assets/userLogin.svg" alt="User Login" class="icon" />
+        <span>书虫</span>
+      </router-link>
+      <router-link to="/book-manage" class="nav-link">
+        <img src="@/assets/adminLogin.svg" alt="Admin Login" class="icon" />
+        <span>店长</span>
+      </router-link>
     </nav>
-    <!-- 其他内容 -->
   </div>
 </template>
 
@@ -19,30 +21,52 @@ export default {
 </script>
 
 <style scoped>
+.container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
 .nav-bar {
   display: flex;
   justify-content: center;
+  gap: 100px;
+  background-color: #ffffff;
   padding: 20px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e7e7e7;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .nav-link {
-  margin: 0 10px;
-  padding: 10px 15px;
   text-decoration: none;
   color: #007bff;
   font-weight: 500;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s, color 0.3s;
 }
 
 .nav-link:hover,
 .nav-link.router-link-active {
-  background-color: #e7f4ff;
+  color: #0056b3;
+  transform: scale(1.1);
 }
 
-.nav-link.router-link-active {
-  color: #0056b3;
+.icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 8px;
 }
 </style>
