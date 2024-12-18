@@ -1,0 +1,157 @@
+<template>
+  <div v-if="visible" class="procurement-record">
+    <div class="modal-content">
+      <h2>采购记录表</h2>
+
+      <!-- 表格 -->
+      <table>
+        <thead>
+        <tr>
+          <th>采购订单ID</th>
+          <th>书ID</th>
+          <th>数量</th>
+          <th>状态</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="record in paginatedRecords" :key="record.procurement_order_id">
+          <td>{{ record.procurement_order_id }}</td>
+          <td>{{ record.book_id }}</td>
+          <td>{{ record.quantity }}</td>
+          <td>{{ record.status }}</td>
+        </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
+        <span>第 {{ currentPage }} 页，共 {{ totalPages }} 页</span>
+        <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
+      </div>
+
+      <button @click="handleClose" class="action-button">关闭</button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useStore } from 'vuex';
+import type { ProcurementOrder } from '@/store/modules/types';
+
+const props = defineProps({
+  visible: Boolean,
+});
+
+console.log(props.visible);
+
+const emit = defineEmits(['close']);
+
+const store = useStore();
+
+onMounted(async () => {
+  await store.dispatch('order/fetchProcurementOrders');
+});
+
+const procurementOrders = computed(() => {
+  const orders: ProcurementOrder[] = store.getters['order/procurementOrders'] || [];
+  console.log('Computed procurementOrders:', orders);
+  return orders;
+});
+
+const handleClose = () => {
+  emit('close');
+};
+
+const currentPage = ref(1);
+const recordsPerPage = 6;
+
+const paginatedRecords = computed(() => {
+  const start = (currentPage.value - 1) * recordsPerPage;
+  const end = start + recordsPerPage;
+  const records = procurementOrders.value.slice(start, end);
+  console.log('Paginated records:', records);
+  return records;
+});
+
+const totalPages = computed(() => {
+  const pages = Math.ceil(procurementOrders.value.length / recordsPerPage);
+  console.log('Total pages:', pages);
+  return pages;
+});
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+</script>
+
+<style scoped>
+.procurement-record {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 800px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+table th {
+  background-color: #f2f2f2;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  background-color: #f2f2f2;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.action-button {
+  margin-top: 20px;
+}
+</style>

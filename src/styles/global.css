@@ -1,0 +1,97 @@
+/*按键*/
+.action-button {
+  padding: 8px 16px;
+  margin-right: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.action-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.action-button:active {
+  background-color: #0056b3;
+  transform: translateY(2px);
+}
+
+.action-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+/*导航*/
+.nav-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+}
+
+.nav-text {
+  display: none;
+  position: absolute;
+  bottom: -40px;
+  background-color: #fff;
+  color: rgba(51, 51, 51, 0.58);
+  padding: 5px 10px;
+  border-radius: 30%;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link:hover .nav-text {
+  display: block;
+}
+
+.nav-link:active .icon {
+  filter: invert(100%);
+}
+
+/*分页*/
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 10px 15px;
+  margin: 0 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 16px;
+}
