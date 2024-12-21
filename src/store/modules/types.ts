@@ -9,7 +9,7 @@ export interface Reader {
 export type ReaderList = Reader[];
 
 export interface Book {
-  book_id: number;
+  book_id: string;
   title: string;
   author: string;
   publication_date: Date;
@@ -23,56 +23,35 @@ export interface Book {
 
 export type BookList = Book[];
 
-export interface Inventory {
-  inventory_id: number;
-  book_id: number;
-  location: string;
-  status: 'available' | 'reserved' | 'sold';
-}
-
 export interface BookShortage {
   shortage_id: number;
-  book_id: number;
+  book_id: string;
   supplier: string;
   quantity: number;
   record_date: Date;
-}
-
-export interface Restock {
-  restock_id: number;
-  book_id: number;
-  inventory_id: number;
-  restock_date: Date;
+  processed: boolean;
 }
 
 export interface Order {
   order_id: number;
   reader_id: number;
-  book_id: number;
+  book_id: string;
   quantity: number;
   price: number;
-  order_date: string;
-  description: string;
+  order_date: Date;
   shipping_address: string;
-  status: 'pending' | 'received' | 'shipped' | 'canceled';
+  status: 'pending' | 'shipped'  | 'cancelled';
 }
 
 export interface ProcurementOrder {
   procurement_order_id: number;
-  book_id: number;
+  book_id: string;
   quantity: number;
-  status: 'pending' | 'processed' | 'completed';
+  status: 'processing' | 'completed';
 }
 
 export interface Supplier {
   supplier_id: number;
   name: string;
-  phone: string;
   supply_info: string;
-}
-
-export interface Author {
-  author_id: number;
-  book_id: number;
-  name: string;
 }

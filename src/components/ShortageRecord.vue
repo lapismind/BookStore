@@ -8,7 +8,7 @@
         <div class="form-row">
           <div class="form-group">
             <label class="inline-label" for="bookId">书籍ID:</label>
-            <input type="text" id="bookId" v-model.number="newShortageRecord.book_id" required />
+            <input type="number" id="bookId" v-model.number="newShortageRecord.book_id" required />
           </div>
           <div class="form-group">
             <label class="inline-label" for="quantity">缺货数目:</label>
@@ -22,17 +22,6 @@
         </div>
       </form>
 
-      <!-- 查询表单 -->
-      <form @submit.prevent="searchRecord" class="search-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="inline-label" for="searchId">缺书ID:</label>
-            <input type="text" id="searchId" v-model.number="searchId" required />
-          </div>
-          <button type="submit" class="action-button">查询</button>
-        </div>
-      </form>
-
       <!-- 表格 -->
       <table>
         <thead>
@@ -42,6 +31,7 @@
           <th>供书商</th>
           <th>数目</th>
           <th>登记日期</th>
+          <th>处理状态</th>
         </tr>
         </thead>
         <tbody>
@@ -51,6 +41,7 @@
           <td>{{ record.supplier }}</td>
           <td>{{ record.quantity }}</td>
           <td>{{ record.record_date }}</td>
+          <td>{{ record.processed ? '已处理' : '未处理' }}</td>
         </tr>
         </tbody>
       </table>
@@ -63,24 +54,6 @@
       </div>
 
       <button @click="handleClose" class="action-button">关闭</button>
-    </div>
-
-    <!-- 查询结果弹窗 -->
-    <div v-if="showSearchModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>查询结果</h3>
-        <div v-if="searchedRecord">
-          <p>缺书登记ID: {{ searchedRecord.shortage_id }}</p>
-          <p>书ID: {{ searchedRecord.book_id }}</p>
-          <p>供书商: {{ searchedRecord.supplier }}</p>
-          <p>数目: {{ searchedRecord.quantity }}</p>
-          <p>登记日期: {{ searchedRecord.record_date }}</p>
-        </div>
-        <div v-else>
-          <p>无对应结果</p>
-        </div>
-        <button @click="closeSearchModal" class="action-button">关闭</button>
-      </div>
     </div>
   </div>
 </template>
@@ -100,15 +73,12 @@ const store = useStore();
 
 const newShortageRecord = ref<BookShortage>({
   shortage_id: 0,
-  book_id: 0,
+  book_id: 'ISBN',
   supplier: '',
   quantity: 0,
   record_date: new Date(),
+  processed: false,
 });
-
-const searchId = ref<number | null>(null);
-const searchedRecord = ref<BookShortage | null>(null);
-const showSearchModal = ref(false);
 
 const shortageRecords = computed(() => store.getters['record/shortageRecords'] || []);
 
@@ -125,27 +95,19 @@ const addShortageRecord = async () => {
   try {
     const newRecord = { ...newShortageRecord.value };
     newRecord.shortage_id = Math.max(...shortageRecords.value.map((r: BookShortage) => r.shortage_id), 0) + 1;
-    newRecord.record_date = new Date(newRecord.record_date);
+    newRecord.record_date = new Date();
     await store.dispatch('record/addShortageRecord', newRecord);
     newShortageRecord.value = {
       shortage_id: 0,
-      book_id: 0,
+      book_id: 'ISBN',
       supplier: '',
       quantity: 0,
       record_date: new Date(),
+      processed: false,
     };
   } catch (error) {
     console.error('Failed to add shortage record:', error);
   }
-};
-
-const searchRecord = () => {
-  searchedRecord.value = store.getters['record/getShortageRecordById'](searchId.value);
-  showSearchModal.value = true;
-};
-
-const closeSearchModal = () => {
-  showSearchModal.value = false;
 };
 
 const handleClose = () => {
@@ -264,18 +226,6 @@ table th {
 .pagination button:disabled {
   background-color: #e0e0e0;
   cursor: not-allowed;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .action-button {

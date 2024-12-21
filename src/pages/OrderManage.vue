@@ -1,13 +1,13 @@
 <template>
   <div>
     <div class="nav-container">
-      <router-link to="/book-list" class="nav-link">
-        <img src="@/assets/bookList.svg" alt="书籍列表" class="icon" />
-        <span class="nav-text">书籍列表</span>
-      </router-link>
       <router-link to="/book-manage" class="nav-link">
-        <img src="@/assets/bookManage.svg" alt="库存管理" class="icon" />
-        <span class="nav-text">库存管理</span>
+        <img src="../assets/bookManage.svg" alt="书籍列表" class="icon" />
+        <span class="nav-text">供书目录管理</span>
+      </router-link>
+      <router-link to="/procurement-manage" class="nav-link">
+        <img src="../assets/ProcurementManage.svg" alt="库存管理" class="icon" />
+        <span class="nav-text">采购管理</span>
       </router-link>
       <router-link to="/user-manage" class="nav-link">
         <img src="@/assets/userManage.svg" alt="用户管理" class="icon" />
@@ -31,7 +31,7 @@
       </router-link>
     </div>
     <div class="order-list">
-      <table>
+      <table v-if="orders.length > 0">
         <thead>
         <tr>
           <th>订单ID</th>
@@ -42,7 +42,6 @@
           <th>订单时间</th>
           <th>收货地址</th>
           <th>状态</th>
-          <th>描述</th>
           <th>操作</th>
         </tr>
         </thead>
@@ -59,18 +58,17 @@
             <select v-model="order.status" @change="updateOrderStatus(order)">
               <option value="pending">Pending</option>
               <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </td>
-          <td>{{ order.description }}</td>
           <td>
             <button @click="deleteOrder(order.order_id)" class="action-button">删除</button>
           </td>
         </tr>
         </tbody>
       </table>
-      <div class="pagination">
+      <div v-else class="no-data">没有订单数据</div>
+      <div class="pagination" v-if="orders.length > 0">
         <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
         <span>第 {{ currentPage }} 页，共 {{ totalPages }} 页</span>
         <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
@@ -152,5 +150,12 @@ th, td {
 
 th {
   background-color: #f2f2f2;
+}
+
+.no-data {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 18px;
+  color: #888;
 }
 </style>

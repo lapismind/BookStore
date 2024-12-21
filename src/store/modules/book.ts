@@ -1,56 +1,69 @@
 import { Book, BookList } from '@/store/modules/types';
+import axios from 'axios';
+import { ActionContext } from 'vuex';
+
+interface State {
+  books: BookList;
+}
 
 export default {
   namespaced: true,
   state() {
     return {
-      books: [
-        {
-          book_id: 1,
-          title: "Java Programming",
-          author: "xyz",
-          publication_date: new Date("2020-05-01"),
-          price: 39.99,
-          publisher: "TechBooks",
-          keywords: "Java, programming, technology",
-          total_stock: 150,
-          supplier: "Tech Supplier Ltd.",
-          series_id: 2,
-        },
-        {
-          book_id: 2,
-          title: "编译原理",
-          author: "hwq",
-          publication_date: new Date("2020-06-01"),
-          price: 20.0,
-          publisher: "TechBooks",
-          keywords: "humor, shabby",
-          total_stock: 10,
-          supplier: "Tech Supplier Ltd.",
-          series_id: 4,
-        },
-      ] as BookList,
-      bookIdCounter: 3, // Initialize the counter to the next available ID
+      books: [] as BookList,
     };
   },
   getters: {
-    getBookById: (state: { books: BookList }) => (bookId: number) => {
+    getBookById: (state: State) => (bookId: string) => {
       return state.books.find((book: Book) => book.book_id === bookId);
+    },
+    getAllBooks: (state: State) => {
+      return state.books;
+    },
+    searchBooks: (state: State) => (query: { id?: string, title?: string, publisher?: string, keywords?: string, author?: string }) => {
+      return state.books.filter((book: Book) => {
+        return (!query.id || book.book_id.includes(query.id)) &&
+          (!query.title || book.title.includes(query.title)) &&
+          (!query.publisher || book.publisher.includes(query.publisher)) &&
+          (!query.keywords || book.keywords.includes(query.keywords)) &&
+          (!query.author || book.author.includes(query.author));
+      });
     },
   },
   mutations: {
-    addBook(state: { books: BookList, bookIdCounter: number }, book: Book) {
-      book.book_id = state.bookIdCounter;
-      state.books.push(book);
-      state.bookIdCounter++; // Increment the counter
+    setBooks(state: State, books: BookList) {
+      state.books = books;
     },
-    deleteBook(state: { books: BookList }, bookId: number) {
+    addBook(state: State, book: Book) {
+      state.books.push(book);
+    },
+    deleteBook(state: State, bookId: string) {
       const index = state.books.findIndex((book: Book) => book.book_id === bookId);
       state.books.splice(index, 1);
     },
-    updateBook(state: { books: BookList }, book: Book) {
+    updateBook(state: State, book: Book) {
       const index = state.books.findIndex((b: Book) => b.book_id === book.book_id);
       state.books.splice(index, 1, book);
+    },
+  },
+  actions: {
+    async fetchBookInfo({ commit }: ActionContext<State, unknown>) {
+      try {
+        const response = await axios.get('/book/get_book_info');
+        commit('setBooks', response.data);
+      } catch (error) {
+        console.error('Failed to fetch book info:', error);
+        throw error;
+      }
+    },
+    async addBook({ commit }: ActionContext<State, unknown>, book: Book) {
+      try {
+        await axios.post('/book/add_book', book);
+        commit('addBook', book);
+      } catch (error) {
+        console.error('Failed to add book:', error);
+        throw error;
+      }
     },
   },
 };

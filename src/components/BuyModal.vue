@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
 import { useStore } from 'vuex';
-import { Book, Reader, Order } from '@/store/modules/types'; // 导入 Book, Reader, Order 接口
+import { Book, Reader, Order } from '@/store/modules/types';
 
 const props = defineProps<{
   visible: boolean;
@@ -69,8 +69,7 @@ const confirmPurchase = () => {
       book_id: props.book.book_id,
       quantity: 1,
       price: props.book.price,
-      order_date: new Date().toISOString(),
-      description: `Order for book ${props.book.title}`,
+      order_date: new Date(),
       shipping_address: props.reader.address,
       status: 'pending',
     };

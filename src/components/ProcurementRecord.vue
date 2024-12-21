@@ -3,6 +3,25 @@
     <div class="modal-content">
       <h2>采购记录表</h2>
 
+      <!-- 新增表单 -->
+      <form @submit.prevent="addProcurementOrder" class="procurement-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="inline-label" for="bookId">书籍ID:</label>
+            <input type="number" id="bookId" v-model.number="newOrder.book_id" required />
+          </div>
+          <div class="form-group">
+            <label class="inline-label" for="quantity">数量:</label>
+            <input type="number" id="quantity" v-model.number="newOrder.quantity" required />
+          </div>
+          <div class="form-group book-title-group">
+            <label class="inline-label" for="bookTitle">书籍标题:</label>
+            <input type="text" id="bookTitle" :value="bookTitle" readonly />
+          </div>
+          <button type="submit" class="action-button">新增</button>
+        </div>
+      </form>
+
       <!-- 表格 -->
       <table>
         <thead>
@@ -11,6 +30,7 @@
           <th>书ID</th>
           <th>数量</th>
           <th>状态</th>
+          <th>操作</th>
         </tr>
         </thead>
         <tbody>
@@ -19,6 +39,9 @@
           <td>{{ record.book_id }}</td>
           <td>{{ record.quantity }}</td>
           <td>{{ record.status }}</td>
+          <td>
+            <button @click="editOrder(record)">修改</button>
+          </td>
         </tr>
         </tbody>
       </table>
@@ -44,21 +67,51 @@ const props = defineProps({
   visible: Boolean,
 });
 
-console.log(props.visible);
-
 const emit = defineEmits(['close']);
 
 const store = useStore();
 
-onMounted(async () => {
-  await store.dispatch('order/fetchProcurementOrders');
+const newOrder = ref<ProcurementOrder>({
+  procurement_order_id: 0,
+  book_id: 'ISBN',
+  quantity: 0,
+  status: 'processing',
+});
+
+const bookTitle = computed(() => {
+  const book = store.getters['book/getBookById'](newOrder.value.book_id);
+  return book ? book.title : '未知书籍';
 });
 
 const procurementOrders = computed(() => {
-  const orders: ProcurementOrder[] = store.getters['order/procurementOrders'] || [];
-  console.log('Computed procurementOrders:', orders);
-  return orders;
+  return store.getters['procure/procurementOrders'] || [];
 });
+
+onMounted(async () => {
+  await store.dispatch('procure/fetchProcurementOrders');
+});
+
+const addProcurementOrder = async () => {
+  try {
+    await store.dispatch('procure/addProcurementOrder', newOrder.value);
+    newOrder.value = {
+      procurement_order_id: 0,
+      book_id: 'ISBN',
+      quantity: 0,
+      status: 'processing',
+    };
+  } catch (error) {
+    console.error('Failed to add procurement order:', error);
+  }
+};
+
+const editOrder = async (order: ProcurementOrder) => {
+  try {
+    await store.dispatch('procure/updateProcurementOrder', order);
+  } catch (error) {
+    console.error('Failed to update procurement order:', error);
+  }
+};
 
 const handleClose = () => {
   emit('close');
@@ -70,15 +123,11 @@ const recordsPerPage = 6;
 const paginatedRecords = computed(() => {
   const start = (currentPage.value - 1) * recordsPerPage;
   const end = start + recordsPerPage;
-  const records = procurementOrders.value.slice(start, end);
-  console.log('Paginated records:', records);
-  return records;
+  return procurementOrders.value.slice(start, end);
 });
 
 const totalPages = computed(() => {
-  const pages = Math.ceil(procurementOrders.value.length / recordsPerPage);
-  console.log('Total pages:', pages);
-  return pages;
+  return Math.ceil(procurementOrders.value.length / recordsPerPage);
 });
 
 const nextPage = () => {
