@@ -47,3 +47,12 @@ class Supplier(Base):
     name = Column(String(100, charset='utf8mb4'), nullable=False, comment='供应商名称')
     phone = Column(String(20), nullable=False, comment='电话号码')
     supply_info = Column(String(1000, charset='utf8mb4'), nullable=False, comment='供货信息')
+
+class Inventory(Base):
+    __tablename__ = "book_store_inventory"
+
+    inventory_id = Column(Integer, primary_key=True, comment='库存 ID')
+    book_id = Column(Integer, ForeignKey('book_store_book.book_id'), nullable=False, comment='书 ID')
+    location = Column(String(100, charset='utf8mb4'), nullable=False, comment='存放位置')
+    status = Column(String(20, charset='utf8mb4'), nullable=False, comment='状态(available,reserved,sold)')
+

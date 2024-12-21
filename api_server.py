@@ -29,7 +29,6 @@ class API(ExceptionHandler):
         self.routes = [
             # 图书相关路由
             ("/v1/books", BookView),
-            ("/v1/books/{book_id}", BookView),
             # 订单相关路由
             ("/v1/orders", OrderView),
             ("/v1/orders/{order_id}", OrderView),
