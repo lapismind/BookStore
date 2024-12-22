@@ -5,6 +5,10 @@
       <h2>新书入库</h2>
       <form @submit.prevent="submitForm">
         <div>
+          <label for="book_id">ISBN:</label>
+          <input type="text" v-model="newBook.book_id" required />
+        </div>
+        <div>
           <label for="title">书名:</label>
           <input type="text" v-model="newBook.title" required />
         </div>
@@ -59,7 +63,7 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const newBook = ref({
-      book_id: null,
+      book_id: '',
       title: '',
       author: '',
       publication_date: '',
@@ -79,7 +83,7 @@ export default defineComponent({
 
     const resetForm = () => {
       newBook.value = {
-        book_id: null,
+        book_id: '',
         title: '',
         author: '',
         publication_date: '',

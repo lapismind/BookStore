@@ -1,16 +1,12 @@
-<script setup lang="ts">
-
-</script>
-
 <template>
   <div class="nav-container">
-    <router-link to="/book-list" class="nav-link">
-      <img src="@/assets/bookList.svg" alt="书籍列表" class="icon" />
-      <span class="nav-text">书籍列表</span>
-    </router-link>
     <router-link to="/book-manage" class="nav-link">
-      <img src="@/assets/bookManage.svg" alt="库存管理" class="icon" />
-      <span class="nav-text">库存管理</span>
+      <img src="../assets/bookManage.svg" alt="书籍列表" class="icon" />
+      <span class="nav-text">供书目录管理</span>
+    </router-link>
+    <router-link to="/procurement-manage" class="nav-link">
+      <img src="../assets/ProcurementManage.svg" alt="库存管理" class="icon" />
+      <span class="nav-text">采购管理</span>
     </router-link>
     <router-link to="/user-manage" class="nav-link">
       <img src="@/assets/userManage.svg" alt="用户管理" class="icon" />
@@ -33,7 +29,14 @@
       <span class="nav-text">退出管理页面</span>
     </router-link>
   </div>
+  <SearchBookInfo />
+  <SearchReaderInfo />
 </template>
+
+<script setup lang="ts">
+import SearchBookInfo from '@/components/SearchBookInfo.vue';
+import SearchReaderInfo from "@/components/SearchReaderInfo.vue";
+</script>
 
 <style scoped>
 

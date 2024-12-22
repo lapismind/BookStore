@@ -5,7 +5,6 @@
       <h2>我的订单</h2>
       <ul>
         <li v-for="(order, index) in orders" :key="index" class="order-item" style="text-align: left;">
-          <div>{{ order.description }}</div>
           <div><strong>订单ID:</strong> {{ order.order_id }}</div>
           <div><strong>下单数量:</strong> {{ order.quantity }}</div>
           <div><strong>价格:</strong> ¥{{ order.price }}</div>

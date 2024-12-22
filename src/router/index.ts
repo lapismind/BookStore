@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 
 import Home from "@/pages/Home.vue";
 import BookBrowser from "@/pages/BookBrowser.vue";
-import BookList from "@/pages/BookList.vue";
 import BookManage from "@/pages/BookManage.vue";
+import ProcurementManage from "@/pages/ProcurementManage.vue";
 import UserManage from "@/pages/UserManage.vue";
 import OrderManage from "@/pages/OrderManage.vue";
 import SupplierManage from "@/pages/SupplierManage.vue";
@@ -15,14 +15,14 @@ const routes = [
     redirect: "/home",
   },
   {
-    path: "/book-list",
-    name: "BookList",
-    component: BookList,
-  },
-  {
     path: "/book-browser",
     name: "BookBrowser",
     component: BookBrowser,
+  },
+  {
+    path: "/procurement-manage",
+    name: "ProcurementManage",
+    component: ProcurementManage,
   },
   {
     path: "/book-manage",
