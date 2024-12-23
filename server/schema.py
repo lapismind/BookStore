@@ -2,7 +2,7 @@ from datetime import datetime, date
 from dataclasses import dataclass
 from decimal import Decimal
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class BookSchema(BaseModel):
     book_id: int
@@ -128,3 +128,27 @@ class OrderCreate(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     order_id: int = Field(..., description="Order ID")
+
+
+class ShortageCreate(BaseModel):
+    book_id: str = Field(..., description="Book ID")
+    series_id: int = Field(..., description="Series Number")
+    publisher: str = Field(..., max_length=100, description="Publisher")
+    supplier: str = Field(..., max_length=100, description="Supplier")
+    quantity: int = Field(..., gt=0, description="Quantity Needed")
+
+
+class ProcureComplete(BaseModel):
+    procurement_order_id: int = Field(..., description="Procurement Order ID")
+
+
+class SupplierCreate(BaseModel):
+    name: str = Field(..., max_length=100, description="Supplier Name")
+    book_list: List[Dict[str, int]] = Field(..., description="List of books with book_id and series_id")
+
+
+class SupplierQuery(BaseModel):
+    supplier_id: Optional[int] = Field(None, description="Supplier ID")
+    name: Optional[str] = Field(None, description="Supplier Name")
+    book_id: Optional[str] = Field(None, description="Book ID")
+    series_id: Optional[int] = Field(None, description="Series ID")

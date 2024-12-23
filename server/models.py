@@ -108,5 +108,4 @@ class Supplier(Base):
     supplier_id = Column(Integer, primary_key=True,
                          autoincrement=True, comment="Supplier ID")
     name = Column(String(100), nullable=False, comment="Supplier Name")
-    supply_info = Column(String(1000), nullable=False,
-                         comment="Supply Information")
+    book_list = Column(JSON, nullable=False, comment="Book List")

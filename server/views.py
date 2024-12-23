@@ -1,15 +1,13 @@
-import io
 import json
 import os
 import time
 from http import HTTPStatus
 
-import numpy as np
 from kui.asgi import Body, HTTPException, JSONResponse, Routes, StreamResponse, request
 from decimal import Decimal
 from loguru import logger
 from typing_extensions import Annotated
-from sqlalchemy import create_engine
+from sqlalchemy import func, tuple_
 from sqlalchemy.orm import sessionmaker
 
 from server.models import *
@@ -595,3 +593,643 @@ async def receive_order(req: Annotated[OrderStatusUpdate, Body(exclusive=True)])
     finally:
         db.close()
 
+
+@routes.http.post("/shortage/add")
+async def create_shortage(req: Annotated[ShortageCreate, Body(exclusive=True)]):
+    '''
+        POST /shortage/add
+        {
+            "book_id": "9780123456789",
+            "series_id": 1,
+            "publisher": "Sample Publisher",
+            "supplier": "Sample Supplier",
+            "quantity": 50
+        }
+
+        success response: 201
+        {
+            "message": "Shortage record created successfully",
+            "shortage": {
+                "shortage_id": 1,
+                "book_id": "9780123456789",
+                "series_id": 1,
+                "publisher": "Sample Publisher",
+                "supplier": "Sample Supplier",
+                "quantity": 50,
+                "record_date": "2024-12-23T18:06:00+00:00",
+                "processed": false
+            }
+        }
+    '''
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        book = db.query(Book).filter(
+            Book.book_id == req.book_id,
+            Book.series_id == req.series_id
+        ).first()
+        
+        if not book:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                message="Book not found"
+            )
+        
+        existing_shortage = db.query(Shortage).filter(
+            Shortage.book_id == req.book_id,
+            Shortage.series_id == req.series_id,
+            Shortage.processed == False
+        ).first()
+        
+        if existing_shortage:
+            existing_shortage.quantity += req.quantity
+            existing_shortage.record_date = datetime.now(datetime.timezone.utc)
+            db.commit()
+            
+            return JSONResponse(
+                status_code=HTTPStatus.OK,
+                content={
+                    "message": "Existing shortage record updated",
+                    "shortage_id": existing_shortage.shortage_id,
+                    "total_quantity": existing_shortage.quantity
+                }
+            )
+        
+        shortage = Shortage(
+            book_id=req.book_id,
+            series_id=req.series_id,
+            publisher=req.publisher,
+            supplier=req.supplier,
+            quantity=req.quantity,
+            record_date=datetime.now(datetime.timezone.utc),
+            processed=False
+        )
+        
+        db.add(shortage)
+        db.commit()
+        
+        return JSONResponse(
+            status_code=HTTPStatus.CREATED,
+            content={
+                "message": "Shortage record created successfully",
+                "shortage": {
+                    "shortage_id": shortage.shortage_id,
+                    "book_id": shortage.book_id,
+                    "series_id": shortage.series_id,
+                    "publisher": shortage.publisher,
+                    "supplier": shortage.supplier,
+                    "quantity": shortage.quantity,
+                    "record_date": shortage.record_date.isoformat(),
+                    "processed": shortage.processed
+                }
+            }
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating shortage record: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error creating shortage record"
+        )
+    finally:
+        db.close()
+
+
+@routes.http.get("/shortage/list")
+async def list_shortages(
+    processed: Optional[bool] = None,
+    book_id: Optional[str] = None,
+    series_id: Optional[int] = None
+):
+    '''
+        GET /shortage/list?processed=false
+
+        success response: 200
+        {
+            "shortages": [
+                {
+                    "shortage_id": 1,
+                    "book_id": "9780123456789",
+                    "series_id": 1,
+                    "publisher": "Sample Publisher",
+                    "supplier": "Sample Supplier",
+                    "quantity": 50,
+                    "record_date": "2024-12-23T18:06:00+00:00",
+                    "processed": false
+                }
+                // ... extra records
+            ]
+        }
+    '''
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        query = db.query(Shortage)
+        
+        if processed is not None:
+            query = query.filter(Shortage.processed == processed)
+        if book_id:
+            query = query.filter(Shortage.book_id == book_id)
+        if series_id:
+            query = query.filter(Shortage.series_id == series_id)
+            
+        shortages = query.order_by(Shortage.record_date.desc()).all()
+        
+        return JSONResponse(
+            status_code=HTTPStatus.OK,
+            content={
+                "shortages": [
+                    {
+                        "shortage_id": s.shortage_id,
+                        "book_id": s.book_id,
+                        "series_id": s.series_id,
+                        "publisher": s.publisher,
+                        "supplier": s.supplier,
+                        "quantity": s.quantity,
+                        "record_date": s.record_date.isoformat(),
+                        "processed": s.processed
+                    }
+                    for s in shortages
+                ]
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error listing shortage records: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error retrieving shortage records"
+        )
+    finally:
+        db.close()
+
+
+@routes.http.post("/procure/create")
+async def create_procurement_orders():
+    '''
+        POST /procure/create
+
+        success response: 201
+        {
+            "message": "Procurement orders created successfully",
+            "orders": [
+                {
+                    "book_id": "9780123456789",
+                    "series_id": 1,
+                    "quantity": 50,
+                    "publisher": "Sample Publisher",
+                    "supplier": "Sample Supplier"
+                }
+                // ... extra records
+            ]
+        }
+    '''
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        shortages = db.query(
+            Shortage.book_id,
+            Shortage.series_id,
+            Shortage.publisher,
+            Shortage.supplier,
+            func.sum(Shortage.quantity).label('total_quantity')
+        ).filter(
+            Shortage.processed == False
+        ).group_by(
+            Shortage.book_id,
+            Shortage.series_id,
+            Shortage.publisher,
+            Shortage.supplier
+        ).all()
+        
+        if not shortages:
+            return JSONResponse(
+                status_code=HTTPStatus.OK,
+                content={
+                    "message": "No pending shortages found"
+                }
+            )
+        
+        created_orders = []
+        for shortage in shortages:
+            procure = Procure(
+                book_id=shortage.book_id,
+                series_id=shortage.series_id,
+                quantity=shortage.total_quantity,
+                status="pending"
+            )
+            db.add(procure)
+            created_orders.append({
+                "book_id": shortage.book_id,
+                "series_id": shortage.series_id,
+                "quantity": shortage.total_quantity,
+                "publisher": shortage.publisher,
+                "supplier": shortage.supplier
+            })
+        
+        db.query(Shortage).filter(
+            Shortage.processed == False
+        ).update(
+            {"processed": True},
+            synchronize_session=False
+        )
+        
+        db.commit()
+        
+        return JSONResponse(
+            status_code=HTTPStatus.CREATED,
+            content={
+                "message": "Procurement orders created successfully",
+                "orders": created_orders
+            }
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating procurement orders: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error creating procurement orders"
+        )
+    finally:
+        db.close()
+
+
+@routes.http.post("/procure/complete")
+async def complete_procurement(req: Annotated[ProcureComplete, Body(exclusive=True)]):
+    '''
+        POST /procure/complete
+        {
+            "procurement_order_id": 1
+        }
+
+        success response: 200
+        {
+            "message": "Procurement completed successfully",
+            "procurement_order_id": 1,
+            "book_id": "9780123456789",
+            "series_id": 1,
+            "quantity": 50,
+            "new_stock": 150
+        }
+    '''
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        procure = db.query(Procure).filter(
+            Procure.procurement_order_id == req.procurement_order_id
+        ).first()
+        
+        if not procure:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                message="Procurement order not found"
+            )
+        
+        if procure.status == "completed":
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                message="Procurement order already completed"
+            )
+        
+        book = db.query(Book).filter(
+            Book.book_id == procure.book_id,
+            Book.series_id == procure.series_id
+        ).first()
+        
+        if not book:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                message="Book not found"
+            )
+        
+        book.stock += procure.quantity
+        
+        procure.status = "completed"
+        
+        db.query(Shortage).filter(
+            Shortage.book_id == procure.book_id,
+            Shortage.series_id == procure.series_id,
+            Shortage.processed == True
+        ).delete(synchronize_session=False)
+        
+        db.commit()
+        
+        return JSONResponse(
+            status_code=HTTPStatus.OK,
+            content={
+                "message": "Procurement completed successfully",
+                "procurement_order_id": procure.procurement_order_id,
+                "book_id": procure.book_id,
+                "series_id": procure.series_id,
+                "quantity": procure.quantity,
+                "new_stock": book.stock
+            }
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error completing procurement: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error completing procurement"
+        )
+    finally:
+        db.close()
+
+
+@routes.http.get("/procure/list")
+async def list_procurements(
+    status: Optional[str] = None,
+    book_id: Optional[str] = None,
+    series_id: Optional[int] = None
+):
+    '''
+        GET /procure/list?status=pending
+
+        success response: 200
+        {
+            "procurements": [
+                {
+                    "procurement_order_id": 2,
+                    "book_id": "9780123456789",
+                    "series_id": 1,
+                    "quantity": 30,
+                    "status": "pending"
+                }
+                // ... extra records
+            ]
+        }
+    '''
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        query = db.query(Procure)
+        
+        if status:
+            query = query.filter(Procure.status == status)
+        if book_id:
+            query = query.filter(Procure.book_id == book_id)
+        if series_id:
+            query = query.filter(Procure.series_id == series_id)
+            
+        procurements = query.all()
+        
+        return JSONResponse(
+            status_code=HTTPStatus.OK,
+            content={
+                "procurements": [
+                    {
+                        "procurement_order_id": p.procurement_order_id,
+                        "book_id": p.book_id,
+                        "series_id": p.series_id,
+                        "quantity": p.quantity,
+                        "status": p.status
+                    }
+                    for p in procurements
+                ]
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error listing procurements: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error retrieving procurement list"
+        )
+    finally:
+        db.close()
+
+
+@routes.http.post("/supplier/add")
+async def create_supplier(req: Annotated[SupplierCreate, Body(exclusive=True)]):
+    """
+        POST /supplier/add
+        {
+            "name": "Sample Supplier",
+            "book_list": [
+                {
+                    "book_id": "9780123456789",
+                    "series_id": 1
+                },
+                {
+                    "book_id": "9780123456790",
+                    "series_id": 2
+                }
+            ]
+        }
+
+        success response: 201
+
+        {
+            "message": "Supplier created successfully",
+            "supplier": {
+                "supplier_id": 1,
+                "name": "Sample Supplier",
+                "book_list": [
+                    {
+                        "book_id": "9780123456789",
+                        "series_id": 1
+                    },
+                    {
+                        "book_id": "9780123456790",
+                        "series_id": 2
+                    }
+                ]
+            }
+        }
+    """
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        book_ids = [(book['book_id'], book['series_id']) for book in req.book_list]
+        existing_books = db.query(Book).filter(
+            tuple_(Book.book_id, Book.series_id).in_(book_ids)
+        ).all()
+        
+        if len(existing_books) != len(book_ids):
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                message="Some books in the list do not exist"
+            )
+        
+        existing_supplier = db.query(Supplier).filter(
+            Supplier.name == req.name
+        ).first()
+        
+        if existing_supplier:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                message="Supplier name already exists"
+            )
+        
+        supplier = Supplier(
+            name=req.name,
+            book_list=req.book_list
+        )
+        db.add(supplier)
+        
+        for book in existing_books:
+            if not book.suppliers:
+                book.suppliers = []
+            
+            if supplier.supplier_id not in book.suppliers:
+                book.suppliers.append(supplier.supplier_id)
+        
+        db.commit()
+        
+        return JSONResponse(
+            status_code=HTTPStatus.CREATED,
+            content={
+                "message": "Supplier created successfully",
+                "supplier": {
+                    "supplier_id": supplier.supplier_id,
+                    "name": supplier.name,
+                    "book_list": supplier.book_list
+                }
+            }
+        )
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating supplier: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error creating supplier"
+        )
+    finally:
+        db.close()
+
+
+@routes.http.get("/supplier/query")
+async def query_suppliers(
+    supplier_id: Optional[int] = None,
+    name: Optional[str] = None,
+    book_id: Optional[str] = None,
+    series_id: Optional[int] = None
+):
+    """
+        query all suppliers
+        GET /supplier/query
+
+        query by supplier id
+        GET /supplier/query?supplier_id=1
+
+        query by name (case-insensitive)
+        GET /supplier/query?name=Sample
+
+        query by book_id
+        GET /supplier/query?book_id=9780123456789&series_id=1
+
+        success response: 200
+        {
+            "suppliers": [
+                {
+                    "supplier_id": 1,
+                    "name": "Sample Supplier",
+                    "books": [
+                        {
+                            "book_id": "9780123456789",
+                            "series_id": 1,
+                            "title": "Sample Book",
+                            "author": "Sample Author",
+                            "price": 29.99
+                        },
+                        {
+                            "book_id": "9780123456790",
+                            "series_id": 2,
+                            "title": "Another Book",
+                            "author": "Another Author",
+                            "price": 19.99
+                        }
+                    ]
+                }
+            ]
+        }
+    """
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        query = db.query(Supplier)
+        
+        if supplier_id:
+            query = query.filter(Supplier.supplier_id == supplier_id)
+        if name:
+            query = query.filter(Supplier.name.ilike(f"%{name}%"))
+        if book_id or series_id:
+            if book_id and series_id:
+                query = query.filter(
+                    Supplier.book_list.contains([
+                        {"book_id": book_id, "series_id": series_id}
+                    ])
+                )
+            elif book_id:
+                query = query.filter(
+                    Supplier.book_list.contains([
+                        {"book_id": book_id}
+                    ])
+                )
+            elif series_id:
+                query = query.filter(
+                    Supplier.book_list.contains([
+                        {"series_id": series_id}
+                    ])
+                )
+        
+        suppliers = query.all()
+        
+        book_details = {}
+        book_ids = set()
+        for supplier in suppliers:
+            for book in supplier.book_list:
+                book_ids.add((book['book_id'], book['series_id']))
+        
+        if book_ids:
+            books = db.query(Book).filter(
+                tuple_(Book.book_id, Book.series_id).in_(book_ids)
+            ).all()
+            book_details = {
+                (book.book_id, book.series_id): {
+                    "title": book.title,
+                    "author": book.author,
+                    "price": float(book.price)
+                }
+                for book in books
+            }
+        
+        return JSONResponse(
+            status_code=HTTPStatus.OK,
+            content={
+                "suppliers": [
+                    {
+                        "supplier_id": s.supplier_id,
+                        "name": s.name,
+                        "books": [
+                            {
+                                "book_id": book['book_id'],
+                                "series_id": book['series_id'],
+                                **book_details.get((book['book_id'], book['series_id']), {})
+                            }
+                            for book in s.book_list
+                        ]
+                    }
+                    for s in suppliers
+                ]
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error querying suppliers: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="Error querying suppliers"
+        )
+    finally:
+        db.close()
