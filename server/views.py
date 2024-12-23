@@ -403,7 +403,8 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
             "series_id": 1,
             "quantity": 2,
             "shipping_address": "123 Main St, City",
-            "description": "Gift wrapping needed"
+            "description": "Gift wrapping needed",
+            "if_paid": true
         }
 
         success response:
