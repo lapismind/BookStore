@@ -41,8 +41,7 @@ class BookCreate(BaseModel):
     def validate_total_stock(cls, v):
         if v is not None and v < 0:
             raise ValueError("Total stock cannot be negative")
-        return v
-    
+        return v  
 
 class BookResponse(BaseModel):
     book_id: str = Field(..., description="ISBN")
@@ -63,7 +62,6 @@ class BookResponse(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
 
-
 class BookGet(BaseModel):
     book_id: Optional[str] = Field(None, description="ISBN")
     series_id: Optional[int] = Field(None, description="Series Number")
@@ -72,7 +70,6 @@ class BookGet(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 class UserCreate(BaseModel):
     user_id: str = Field(..., min_length=1, max_length=20,
@@ -102,7 +99,6 @@ class UserCreate(BaseModel):
     class Config:
         from_attributes = True
 
-
 class UserLogin(BaseModel):
     user_id: str = Field(..., min_length=1, max_length=20,
                          description="User ID")
@@ -111,7 +107,6 @@ class UserLogin(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 class UserResponse(BaseModel):
     reader_id: int = Field(..., description="Reader ID")
@@ -122,3 +117,14 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class OrderCreate(BaseModel):
+    reader_id: int = Field(..., description="Reader ID")
+    book_id: str = Field(..., description="Book ID")
+    series_id: int = Field(..., description="Series Number")
+    quantity: int = Field(..., gt=0, description="Quantity")
+    shipping_address: str = Field(..., max_length=200, description="Shipping Address")
+    description: Optional[str] = Field(None, max_length=500, description="Description")
+
+class OrderStatusUpdate(BaseModel):
+    order_id: int = Field(..., description="Order ID")

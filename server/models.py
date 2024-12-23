@@ -51,7 +51,7 @@ class Order(Base):
     shipping_address = Column(
         String(200), nullable=False, comment="Shipping Address")
     status = Column(String(20), nullable=False,
-                    comment="Order Status (pending, shipped, cancelled)")
+                    comment="Order Status (pending, shipped, cancelled, completed)")
 
     __table_args__ = (
         ForeignKeyConstraint(
