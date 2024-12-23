@@ -50,6 +50,7 @@ class Order(Base):
     description = Column(String(500), nullable=True, comment="Description")
     shipping_address = Column(
         String(200), nullable=False, comment="Shipping Address")
+    if_paid = Column(Boolean, nullable=False, default=False, comment="If Paid")
     status = Column(String(20), nullable=False,
                     comment="Order Status (pending, shipped, cancelled, completed)")
 

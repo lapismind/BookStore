@@ -355,6 +355,44 @@ async def update_balance(
         db.close()
 
 
+@routes.http.get("/user/query")
+async def query_user(
+    user_id: Optional[str] = None,
+    reader_id: Optional[int] = None
+):
+    SessionLocal = request.app.state.SessionLocal
+    db = SessionLocal()
+    try:
+        query = db.query(User)
+        if user_id:
+            query = query.filter(User.user_id == user_id)
+        if reader_id:
+            query = query.filter(User.reader_id == reader_id)
+
+        records = query.all()
+        if not records:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail="No matching users found"
+            )
+
+        data = [UserResponse.from_orm(u).model_dump() for u in records]
+        return JSONResponse(
+            status_code=HTTPStatus.OK,
+            content={"users": data}
+        )
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error querying user: {e}")
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            detail="Error querying user"
+        )
+    finally:
+        db.close()
+
+
 @routes.http.post("/order/add")
 async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
     '''
@@ -399,6 +437,7 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
                 order_date=datetime.now(),
                 description=req.description,
                 shipping_address=req.shipping_address,
+                if_paid=req.if_paid,
                 status="cancelled"
             )
             db.add(order)
@@ -416,17 +455,39 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
         user = db.query(User).filter(User.reader_id == req.reader_id).first()
         total_price = book.price * req.quantity
         
-        if user.balance < total_price:
+        # Determine discount and overdraft allowance based on user's credit level
+        discount_map = {
+            1: 0.10,
+            2: 0.15,
+            3: 0.15,
+            4: 0.20,
+            5: 0.25
+        }
+
+        overdraft_map = {
+            1: 0,
+            2: 0,
+            3: 1000,
+            4: 2000,
+            5: float('inf')
+        }
+        overdraft_allowed_levels = {3, 4, 5}
+        
+        discount_rate = discount_map.get(user.credit_level, 0.0)
+        discounted_price = book.price * req.quantity * (1 - discount_rate)
+        dilivery_balance = user.balance + overdraft_map.get(user.credit_level, 0.0)
+
+        if book.price > dilivery_balance or (req.if_paid & user.credit_level not in overdraft_allowed_levels):
             order = Order(
-                reader_id=req.reader_id,
-                book_id=req.book_id,
-                series_id=req.series_id,
-                quantity=req.quantity,
-                price=total_price,
-                order_date=datetime.now(),
-                description=req.description,
-                shipping_address=req.shipping_address,
-                status="cancelled"
+            reader_id=req.reader_id,
+            book_id=req.book_id,
+            series_id=req.series_id,
+            quantity=req.quantity,
+            price=discounted_price,
+            order_date=datetime.now(),
+            description=req.description,
+            shipping_address=req.shipping_address,
+            status="cancelled"
             )
             db.add(order)
             db.commit()
@@ -440,6 +501,8 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
                 }
             )
         
+        total_price = discounted_price
+
         order = Order(
             reader_id=req.reader_id,
             book_id=req.book_id,
@@ -453,7 +516,10 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
         )
         
         book.stock -= req.quantity
-        user.balance -= total_price
+        if req.if_paid:
+            user.balance -= total_price
+        
+        _ = update_credit_level(user, db)
         
         db.add(order)
         db.commit()
@@ -569,6 +635,13 @@ async def receive_order(req: Annotated[OrderStatusUpdate, Body(exclusive=True)])
                 message=f"Cannot receive order in {order.status} status"
             )
         
+        if not order.if_paid:
+            user = db.query(User).filter(User.reader_id == order.reader_id).first()
+            user.update(
+                {"balance": User.balance - order.price},
+                synchronize_session=False
+            )
+            _ = update_credit_level(user, db)
         order.status = "completed"
         db.commit()
         
