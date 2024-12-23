@@ -1,0 +1,12 @@
+2024-12-23 10:44:56.332 | INFO     | server.db_manager:__init__:17 - Database manager initialized
+2024-12-23 10:44:56.332 | INFO     | __main__:initialize_app:73 - Database connection established
+2024-12-23 10:44:56.333 | INFO     | __main__:initialize_app:74 - Server listening at http://0.0.0.0:8000
+2024-12-23 10:45:01.907 | ERROR    | server.views:add_book:39 - Error adding book: 2 validation errors for BookSchema
+book_id
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='B001', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.10/v/int_parsing
+keywords
+  Input should be a valid string [type=string_type, input_value=['test', 'programming'], input_type=list]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+2024-12-23 10:54:19.335 | INFO     | server.db_manager:close:63 - All database connections closed
+2024-12-23 10:54:19.336 | INFO     | __main__:cleanup_app:79 - Database connections closed

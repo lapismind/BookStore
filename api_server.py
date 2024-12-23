@@ -12,40 +12,12 @@ pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 from server.api_utils import parse_args
 from server.exception_handler import ExceptionHandler
 from server.db_manager import DatabaseManager
-from server.views import (
-    BookView,
-    OrderView,
-    CustomerView,
-    SupplierView,
-    InventoryView,
-    AuthView,
-)
+from server.views import routes
 
 class API(ExceptionHandler):
     def __init__(self):
         self.args = parse_args()
-        
-        # 定义API路由
-        self.routes = [
-            # 图书相关路由
-            ("/v1/books", BookView),
-            # 订单相关路由
-            ("/v1/orders", OrderView),
-            ("/v1/orders/{order_id}", OrderView),
-            # 客户相关路由
-            ("/v1/customers", CustomerView),
-            ("/v1/customers/{customer_id}", CustomerView),
-            # 供应商相关路由
-            ("/v1/suppliers", SupplierView),
-            ("/v1/suppliers/{supplier_id}", SupplierView),
-            # 库存相关路由
-            ("/v1/inventory", InventoryView),
-            ("/v1/inventory/{book_id}", InventoryView),
-            # 认证相关路由
-            ("/v1/auth/login", AuthView),
-            ("/v1/auth/register", AuthView),
-        ]
-        self.routes = Routes([HttpRoute(path, view) for path, view in self.routes])
+        self.routes = routes
 
         self.openapi = OpenAPI(
             {
@@ -81,7 +53,7 @@ class API(ExceptionHandler):
             f"{self.args.db_host}:{self.args.db_port}/{self.args.db_name}?charset=utf8mb4"
         )
         
-        engine = create_engine(
+        app.state.engine = create_engine(
             database_url,
             pool_size=self.args.max_connections,
             max_overflow=10,
@@ -90,8 +62,8 @@ class API(ExceptionHandler):
             pool_recycle=3600
         )
 
-        
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=app.state.engine)
+        app.state.SessionLocal = SessionLocal
         
         app.state.db_manager = DatabaseManager(
             session_maker=SessionLocal,
@@ -100,6 +72,7 @@ class API(ExceptionHandler):
 
         logger.info(f"Database connection established")
         logger.info(f"Server listening at http://{self.args.listen}")
+
 
     async def cleanup_app(self, app: Kui):
         await app.state.db_manager.close()
@@ -115,10 +88,10 @@ def parse_args():
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     
     parser.add_argument("--db-host", default="localhost", help="Database host")
-    parser.add_argument("--db-port", type=int, default=5432, help="Database port")
+    parser.add_argument("--db-port", type=int, default=3306, help="Database port")
     parser.add_argument("--db-name", default="bookstore", help="Database name")
-    parser.add_argument("--db-user", default="postgres", help="Database user")
-    parser.add_argument("--db-password", default="postgres", help="Database password")
+    parser.add_argument("--db-user", default="bookstore", help="Database user")
+    parser.add_argument("--db-password", default="123456", help="Database password")
     parser.add_argument("--max-connections", type=int, default=10, help="Maximum database connections")
     
     return parser.parse_args()

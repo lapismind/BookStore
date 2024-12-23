@@ -1,0 +1,3 @@
+2024-12-22 16:47:37.396 | INFO     | server.db_manager:__init__:17 - Database manager initialized
+2024-12-22 16:47:37.397 | INFO     | __main__:initialize_app:73 - Database connection established
+2024-12-22 16:47:37.397 | INFO     | __main__:initialize_app:74 - Server listening at http://0.0.0.0:8000

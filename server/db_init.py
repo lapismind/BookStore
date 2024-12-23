@@ -33,7 +33,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--db-user", default="bookstore")
-    parser.add_argument("--db-password", required=True)
+    parser.add_argument("--db-password", default='123456')
     parser.add_argument("--db-host", default="localhost")
     parser.add_argument("--db-port", default="3306")
     parser.add_argument("--db-name", default="bookstore")

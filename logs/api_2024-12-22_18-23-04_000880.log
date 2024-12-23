@@ -1,0 +1,8 @@
+2024-12-22 18:23:04.147 | INFO     | server.db_manager:__init__:17 - Database manager initialized
+2024-12-22 18:23:04.147 | INFO     | __main__:initialize_app:73 - Database connection established
+2024-12-22 18:23:04.148 | INFO     | __main__:initialize_app:74 - Server listening at http://0.0.0.0:8000
+2024-12-22 18:23:14.455 | ERROR    | server.views:add_book:64 - Unexpected error: '_asyncio.Task' object is not callable
+2024-12-22 18:23:14.469 | ERROR    | server.views:add_book:64 - Unexpected error: '_asyncio.Task' object is not callable
+2024-12-22 18:23:14.483 | ERROR    | server.views:add_book:64 - Unexpected error: '_asyncio.Task' object is not callable
+2024-12-22 18:23:49.352 | INFO     | server.db_manager:close:63 - All database connections closed
+2024-12-22 18:23:49.352 | INFO     | __main__:cleanup_app:78 - Database connections closed
