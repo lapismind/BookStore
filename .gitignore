@@ -23,3 +23,7 @@ pnpm-debug.log*
 *.sw?
 
 test.ipynb
+*.pyc
+/__pycache__/
+
+/logs

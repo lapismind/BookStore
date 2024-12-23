@@ -1,7 +1,0 @@
-2024-12-23 11:12:11.925 | INFO     | server.db_manager:__init__:17 - Database manager initialized
-2024-12-23 11:12:11.927 | INFO     | __main__:initialize_app:73 - Database connection established
-2024-12-23 11:12:11.927 | INFO     | __main__:initialize_app:74 - Server listening at http://0.0.0.0:8000
-2024-12-23 11:12:44.861 | ERROR    | server.views:add_book:54 - Error adding book: (pymysql.err.OperationalError) (1054, "Unknown column 'author' in 'field list'")
-[SQL: INSERT INTO book (book_id, series_id, title, author, publication_date, price, publisher, keywords, total_stock, supplier) VALUES (%(book_id)s, %(series_id)s, %(title)s, %(author)s, %(publication_date)s, %(price)s, %(publisher)s, %(keywords)s, %(total_stock)s, %(supplier)s)]
-[parameters: {'book_id': '1', 'series_id': 1, 'title': 'The Test Book', 'author': '["Test Author"]', 'publication_date': datetime.datetime(2024, 12, 23, 0, 0), 'price': 29.99, 'publisher': 'Test Publisher', 'keywords': '["test", "programming"]', 'total_stock': 100, 'supplier': '["Test Supplier"]'}]
-(Background on this error at: https://sqlalche.me/e/20/e3q8)

@@ -1,5 +1,0 @@
-2024-12-23 14:05:46.891 | INFO     | server.db_manager:__init__:17 - Database manager initialized
-2024-12-23 14:05:46.892 | INFO     | __main__:initialize_app:73 - Database connection established
-2024-12-23 14:05:46.892 | INFO     | __main__:initialize_app:74 - Server listening at http://0.0.0.0:8000
-2024-12-23 14:08:50.288 | INFO     | server.db_manager:close:63 - All database connections closed
-2024-12-23 14:08:50.288 | INFO     | __main__:cleanup_app:79 - Database connections closed

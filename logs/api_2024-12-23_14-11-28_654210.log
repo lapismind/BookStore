@@ -1,7 +1,0 @@
-2024-12-23 14:11:28.696 | INFO     | server.db_manager:__init__:17 - Database manager initialized
-2024-12-23 14:11:28.697 | INFO     | __main__:initialize_app:73 - Database connection established
-2024-12-23 14:11:28.697 | INFO     | __main__:initialize_app:74 - Server listening at http://0.0.0.0:8000
-2024-12-23 14:11:44.035 | ERROR    | server.views:add_book:54 - Error adding book: (pymysql.err.OperationalError) (1049, "Unknown database 'bookstore'")
-(Background on this error at: https://sqlalche.me/e/20/e3q8)
-2024-12-23 14:24:56.073 | INFO     | server.db_manager:close:63 - All database connections closed
-2024-12-23 14:24:56.112 | INFO     | __main__:cleanup_app:79 - Database connections closed
