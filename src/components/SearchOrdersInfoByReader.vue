@@ -3,7 +3,7 @@
     <button @click="openModal" class="action-button">查询订单</button>
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
       <div class="modal-content">
-        <button class="close-button" @click="closeModal">X</button>
+        <button class="close-button" @click="closeModal"></button>
         <form @submit.prevent="searchOrders">
           <div class="form-group">
             <label for="readerId">Reader ID:</label>
@@ -11,16 +11,16 @@
           </div>
         </form>
         <div v-if="orders.length > 0">
-          <h2>Order Information:</h2>
+          <h2>订单信息:</h2>
           <ul>
             <li v-for="order in orders" :key="order.order_id">
-              <p>Order ID: {{ order.order_id }}</p>
-              <p>Book ID: {{ order.book_id }}</p>
-              <p>Quantity: {{ order.quantity }}</p>
-              <p>Price: ¥{{ order.price }}</p>
-              <p>Order Date: {{ formatDate(new Date(order.order_date)) }}</p>
-              <p>Shipping Address: {{ order.shipping_address }}</p>
-              <p>Status: {{ order.status }}</p>
+              <p>订单ID: {{ order.order_id }}</p>
+              <p>书籍ID: {{ order.book_id }}</p>
+              <p>订单数量: {{ order.quantity }}</p>
+              <p>价格: ¥{{ order.price }}</p>
+              <p>订单日期: {{ formatDate(new Date(order.order_date)) }}</p>
+              <p>送货地址: {{ order.shipping_address }}</p>
+              <p>订单状态: {{ order.status }}</p>
             </li>
           </ul>
         </div>

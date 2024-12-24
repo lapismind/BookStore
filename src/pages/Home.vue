@@ -58,8 +58,7 @@ export default {
   transition: transform 0.3s, color 0.3s;
 }
 
-.nav-link:hover,
-.nav-link.router-link-active {
+.nav-link:hover {
   color: #0056b3;
   transform: scale(1.1);
 }

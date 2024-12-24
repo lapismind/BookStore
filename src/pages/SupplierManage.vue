@@ -22,7 +22,7 @@
     </router-link>
     <router-link to="/search" class="nav-link">
       <img src="@/assets/search.svg" alt="搜索" class="icon" />
-      <span class="nav-text">搜索</span>
+      <span class="nav-text">全局搜索</span>
     </router-link>
     <router-link to="/home" class="nav-link">
       <img src="@/assets/exit.svg" alt="退出管理页面" class="icon" />
@@ -31,30 +31,11 @@
   </div>
 
   <div class="supplier-manage">
-    <h2>供应商管理</h2>
+    <div class="button-group">
+      <button @click="showAddSupplierModal = true" class="action-button">新增供应商</button>
+      <button @click="showSearchSupplierModal = true" class="action-button">搜索供应商信息</button>
+    </div>
 
-    <!-- 新增供应商表单 -->
-    <form @submit.prevent="addSupplier" class="supplier-form">
-      <div class="form-group">
-        <label for="name">名称:</label>
-        <input type="text" id="name" v-model="newSupplier.name" required />
-      </div>
-      <div class="form-group">
-        <label for="bookList">书籍列表:</label>
-        <input type="text" id="bookList" v-model="newBookId" placeholder="书籍ID" />
-        <input type="text" v-model="newSeriesId" placeholder="系列ID" />
-        <button type="button" @click="addBookToList">添加书籍</button>
-      </div>
-      <ul>
-        <li v-for="(book, index) in newSupplier.book_list" :key="index">
-          {{ book.book_id }} - {{ book.series_id }}
-          <button type="button" @click="removeBookFromList(index)">移除</button>
-        </li>
-      </ul>
-      <button type="submit" class="action-button">新增</button>
-    </form>
-
-    <!-- 供应商列表 -->
     <table>
       <thead>
       <tr>
@@ -77,58 +58,35 @@
       </tr>
       </tbody>
     </table>
+
+    <AddSupplier
+      :visible="showAddSupplierModal"
+      @close="showAddSupplierModal = false"
+    />
+    <SearchSupplierInfo
+      :visible="showSearchSupplierModal"
+      @close="showSearchSupplierModal = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import AddSupplier from '@/components/AddSupplier.vue';
+import SearchSupplierInfo from '@/components/SearchSupplierInfo.vue';
 import type { Supplier } from '@/store/modules/types';
 
 const store = useStore();
 
-const newSupplier = ref<Supplier>({
-  supplier_id: 0,
-  name: '',
-  book_list: [],
-});
+const showAddSupplierModal = ref(false);
+const showSearchSupplierModal = ref(false);
 
-const newBookId = ref('');
-const newSeriesId = ref('');
-
-const suppliers = computed(() => store.getters['supplier/suppliers']);
+const suppliers = computed<Supplier[]>(() => store.getters['supplier/suppliers']);
 
 onMounted(async () => {
   await store.dispatch('supplier/fetchSuppliers');
 });
-
-const addBookToList = () => {
-  if (newBookId.value && newSeriesId.value) {
-    newSupplier.value.book_list.push({
-      book_id: newBookId.value,
-      series_id: Number(newSeriesId.value),
-    });
-    newBookId.value = '';
-    newSeriesId.value = '';
-  }
-};
-
-const removeBookFromList = (index: number) => {
-  newSupplier.value.book_list.splice(index, 1);
-};
-
-const addSupplier = async () => {
-  try {
-    await store.dispatch('supplier/addSupplier', newSupplier.value);
-    newSupplier.value = {
-      supplier_id: 0,
-      name: '',
-      book_list: [],
-    };
-  } catch (error) {
-    console.error('Failed to add supplier:', error);
-  }
-};
 </script>
 
 <style scoped>
@@ -136,27 +94,14 @@ const addSupplier = async () => {
   padding: 20px;
 }
 
-.supplier-form {
+.button-group {
+  display: flex;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-.supplier-form .form-group {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.supplier-form .form-group label {
+.action-button {
   margin-right: 10px;
-}
-
-.supplier-form .form-group input {
-  flex: 1;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-.supplier-form .action-button {
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
@@ -164,7 +109,7 @@ const addSupplier = async () => {
   cursor: pointer;
 }
 
-.supplier-form .action-button:hover {
+.action-button:hover {
   background-color: #0056b3;
 }
 

@@ -1,29 +1,7 @@
-# bookstore_frontend
+# 网上书店管理系统
 
-## Project setup
+该项目是一个网上书店管理系统，为书店管理员提供了书籍管理、采购管理、用户管理、订单管理、供应商管理、查询等功能。用户可以浏览或搜索书籍、下订单、确认收货等。
 
-```
-pnpm install
-```
-
-### Compiles and hot-reloads for development
-
-```
-pnpm run serve
-```
-
-### Compiles and minifies for production
-
-```
-pnpm run build
-```
-
-### Lints and fixes files
-
-```
-pnpm run lint
-```
-
-### Customize configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 成员
+- 前端：胡鹏飞
+- 后端：程一帆

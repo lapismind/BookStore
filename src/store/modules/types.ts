@@ -44,7 +44,7 @@ export interface Order {
   order_date: string;
   shipping_address: string;
   if_paid: boolean;
-  status: 'pending' | 'shipped' | 'cancelled';
+  status: 'pending' | 'shipped' | 'cancelled' | 'completed';
 }
 
 export interface ProcurementOrder {

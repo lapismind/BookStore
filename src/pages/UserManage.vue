@@ -2,11 +2,11 @@
   <div>
     <div class="nav-container">
       <router-link to="/book-manage" class="nav-link">
-        <img src="../assets/bookManage.svg" alt="书籍列表" class="icon" />
-        <span class="nav-text">供书目录管理</span>
+        <img src="../assets/bookManage.svg" alt="图书管理" class="icon" />
+        <span class="nav-text">图书管理</span>
       </router-link>
       <router-link to="/procurement-manage" class="nav-link">
-        <img src="../assets/ProcurementManage.svg" alt="库存管理" class="icon" />
+        <img src="../assets/ProcurementManage.svg" alt="采购管理" class="icon" />
         <span class="nav-text">采购管理</span>
       </router-link>
       <router-link to="/user-manage" class="nav-link">
@@ -14,8 +14,8 @@
         <span class="nav-text">用户管理</span>
       </router-link>
       <router-link to="/order-manage" class="nav-link">
-        <img src="@/assets/orderManage.svg" alt="用户订单管理" class="icon" />
-        <span class="nav-text">用户订单管理</span>
+        <img src="@/assets/orderManage.svg" alt="订单管理" class="icon" />
+        <span class="nav-text">订单管理</span>
       </router-link>
       <router-link to="/supplier-manage" class="nav-link">
         <img src="@/assets/supplierManage.svg" alt="供应商管理" class="icon" />
@@ -23,17 +23,18 @@
       </router-link>
       <router-link to="/search" class="nav-link">
         <img src="@/assets/search.svg" alt="搜索" class="icon" />
-        <span class="nav-text">搜索</span>
+        <span class="nav-text">全局搜索</span>
       </router-link>
       <router-link to="/home" class="nav-link">
-        <img src="@/assets/exit.svg" alt="退出管理页面" class="icon" />
-        <span class="nav-text">退出管理页面</span>
+        <img src="@/assets/exit.svg" alt="退出" class="icon" />
+        <span class="nav-text">退出</span>
       </router-link>
     </div>
+    <div class="button-group">
+      <button @click="showUserRegisterModal = true" class="action-button">用户注册</button>
+      <button @click="showUserSearchModal = true" class="action-button">用户查询</button>
+    </div>
     <div class="user-list">
-      <div class="search-container">
-        <input type="text" v-model="searchQuery" placeholder="搜索用户ID或昵称" @input="searchReaders" />
-      </div>
       <table>
         <thead>
         <tr>
@@ -42,7 +43,6 @@
           <th>用户地址</th>
           <th>用户余额</th>
           <th>信用等级</th>
-          <th>操作</th>
         </tr>
         </thead>
         <tbody>
@@ -55,9 +55,6 @@
             <button @click="updateBalance(reader)">更新余额</button>
           </td>
           <td>{{ reader.credit_level }}</td>
-          <td>
-            <button @click="deleteReader(reader.reader_id)">删除</button>
-          </td>
         </tr>
         </tbody>
       </table>
@@ -67,16 +64,8 @@
         <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
       </div>
     </div>
-    <div class="register-container">
-      <h2>注册新用户</h2>
-      <form @submit.prevent="registerUser">
-        <input type="text" v-model="newReader.user_id" placeholder="用户昵称" required />
-        <input type="text" v-model="newReader.address" placeholder="用户地址" required />
-        <input type="number" v-model="newReader.balance" placeholder="用户余额" required />
-        <input type="number" v-model="newReader.credit_level" placeholder="信用等级" required />
-        <button type="submit">注册</button>
-      </form>
-    </div>
+    <RegisterUser :visible="showUserRegisterModal" @close="showUserRegisterModal = false" />
+    <SearchReaderInfo :visible="showUserSearchModal" @close="showUserSearchModal = false" />
   </div>
 </template>
 
@@ -84,18 +73,15 @@
 import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { Reader } from '@/store/modules/types';
+import RegisterUser from '@/components/RegisterUser.vue';
+import SearchReaderInfo from '@/components/SearchReaderInfo.vue';
+
+const showUserRegisterModal = ref(false);
+const showUserSearchModal = ref(false);
 
 const store = useStore();
 const currentPage = ref(1);
 const itemsPerPage = 10;
-const searchQuery = ref('');
-const newReader = ref<Reader>({
-  reader_id: 0,
-  user_id: '',
-  address: '',
-  balance: 0,
-  credit_level: 0,
-});
 
 const fetchReaders = () => {
   store.dispatch('user/getUserInfo', { all: true });
@@ -123,42 +109,10 @@ const nextPage = () => {
   }
 };
 
-const registerUser = () => {
-  store.dispatch('user/register', newReader.value).then(() => {
-    fetchReaders();
-    resetNewReaderForm();
-  });
-};
-
 const updateBalance = (reader: Reader) => {
   store.dispatch('user/changeUserInfo', reader).then(() => {
     fetchReaders();
   });
-};
-
-const deleteReader = (readerId: number) => {
-  store.commit('user/DELETE_READER', readerId);
-};
-
-const searchReaders = () => {
-  store.dispatch('user/getUserInfo', { all: true }).then(() => {
-    if (searchQuery.value) {
-      const query = { userId: searchQuery.value };
-      store.commit('user/SET_READERS', store.getters['user/searchReaders'](query));
-    } else {
-      fetchReaders();
-    }
-  });
-};
-
-const resetNewReaderForm = () => {
-  newReader.value = {
-    reader_id: 0,
-    user_id: '',
-    address: '',
-    balance: 0,
-    credit_level: 0,
-  };
 };
 
 watch(readers, () => {
@@ -228,5 +182,18 @@ th, td {
 
 th {
   background-color: #f2f2f2;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
 }
 </style>

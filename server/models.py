@@ -47,7 +47,6 @@ class Order(Base):
     quantity = Column(Integer, nullable=False, comment="Quantity")
     price = Column(DECIMAL(10, 2), nullable=False, comment="Price")
     order_date = Column(DateTime, nullable=False, comment="Order Date")
-    description = Column(String(500), nullable=True, comment="Description")
     shipping_address = Column(
         String(200), nullable=False, comment="Shipping Address")
     if_paid = Column(Boolean, nullable=False, default=False, comment="If Paid")

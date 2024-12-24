@@ -1,65 +1,54 @@
 <template>
-  <div>
-    <button @click="openModal" class="action-button">用户查询</button>
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
-        <button class="close-button" @click="closeModal">X</button>
-        <form @submit.prevent>
-          <div class="form-group">
-            <label for="readerId">Reader ID:</label>
-            <input type="text" id="readerId" v-model="searchQuery.readerId" />
-          </div>
-          <div class="form-group">
-            <label for="userId">User ID:</label>
-            <input type="text" id="userId" v-model="searchQuery.userId" />
-          </div>
-        </form>
-        <div v-if="searchReaders.length > 0">
-          <h2>User Information:</h2>
-          <ul>
-            <li v-for="reader in searchReaders" :key="reader.reader_id">
-              <p>Reader ID: {{ reader.reader_id }}</p>
-              <p>Name: {{ reader.user_id }}</p>
-              <p>Address: {{ reader.address }}</p>
-              <p>Balance: {{ reader.balance }}</p>
-              <p>Credit Level: {{ reader.credit_level }}</p>
-              <SearchOrdersInfo :readerId="reader.reader_id" />
-            </li>
-          </ul>
+  <div v-if="visible" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-content">
+      <button class="close-button" @click="closeModal"></button>
+      <form @submit.prevent>
+        <div class="form-group">
+          <label for="search">搜索:</label>
+          <input type="text" id="search" v-model="searchQuery.searchTerm" placeholder="通过id或名称搜索" />
         </div>
-        <div v-else>
-          <p>No users found.</p>
-        </div>
+      </form>
+      <div v-if="searchReaders.length > 0">
+        <h2>用户信息:</h2>
+        <ul>
+          <li v-for="reader in searchReaders" :key="reader.reader_id">
+            <p>用户 ID: {{ reader.reader_id }}</p>
+            <p>昵称: {{ reader.user_id }}</p>
+            <p>地址: {{ reader.address }}</p>
+            <p>余额: {{ reader.balance }}</p>
+            <p>信用等级: {{ reader.credit_level }}</p>
+            <SearchOrdersInfoByReader :readerId="reader.reader_id" />
+          </li>
+        </ul>
+      </div>
+      <div v-else>
+        <p>没有找到用户</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, defineProps, defineEmits } from 'vue';
 import { useStore } from 'vuex';
 import { Reader } from '@/store/modules/types';
-import SearchOrdersInfo from '@/components/SearchOrdersInfo.vue';
+import SearchOrdersInfoByReader from "@/components/SearchOrdersInfoByReader.vue";
+
+const props = defineProps<{ visible: boolean }>();
+const emit = defineEmits(['close']);
 
 const store = useStore();
 
 const searchQuery = ref({
-  readerId: '',
-  userId: '',
+  searchTerm: '',
 });
 
 const searchReaders = computed<Reader[]>(() => {
-  return store.getters['user/searchReaders'](searchQuery.value);
+  return store.getters['user/searchReaders'](searchQuery.value.searchTerm);
 });
 
-const showModal = ref(false);
-
-const openModal = () => {
-  showModal.value = true;
-};
-
 const closeModal = () => {
-  showModal.value = false;
+  emit('close');
 };
 </script>
 

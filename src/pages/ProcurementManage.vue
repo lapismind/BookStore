@@ -22,7 +22,7 @@
     </router-link>
     <router-link to="/search" class="nav-link">
       <img src="@/assets/search.svg" alt="搜索" class="icon" />
-      <span class="nav-text">搜索</span>
+      <span class="nav-text">全局搜索</span>
     </router-link>
     <router-link to="/home" class="nav-link">
       <img src="@/assets/exit.svg" alt="退出管理页面" class="icon" />

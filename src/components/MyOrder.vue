@@ -1,4 +1,3 @@
-<!-- MyOrder.vue -->
 <template>
   <div v-if="visible" class="modal">
     <div class="modal-content">
@@ -11,6 +10,7 @@
           <div><strong>订单时间:</strong> {{ formatDate(new Date(order.order_date)) }}</div>
           <div><strong>收货地址:</strong> {{ order.shipping_address }}</div>
           <div><strong>状态:</strong> {{ order.status }}</div>
+          <button v-if="order.status === 'shipped'" @click="receiveOrder(order.order_id)" class="action-button">收货</button>
         </li>
       </ul>
       <button @click="closeModal">关闭</button>
@@ -38,12 +38,21 @@ const closeModal = () => {
   emit('close');
 };
 
+const receiveOrder = async (orderId: number) => {
+  try {
+    await store.dispatch('order/receiveOrder', orderId);
+  } catch (error) {
+    console.error('Failed to receive order:', error);
+  }
+};
+
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString();
 };
 
 console.log(props.visible);
 </script>
+
 <style scoped>
 .modal {
   position: fixed;

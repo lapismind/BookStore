@@ -10,12 +10,6 @@ export default {
     };
   },
   getters: {
-    getAllReaders(state: { readers: ReaderList }): ReaderList {
-      return state.readers;
-    },
-    getReaderById: (state: { readers: ReaderList }) => (readerId: number): Reader | undefined => {
-      return state.readers.find(reader => reader.reader_id === readerId);
-    },
     searchReaders: (state: { readers: ReaderList }) => (query: { readerId?: number, userId?: string }): ReaderList => {
       return state.readers.filter(reader => {
         return (query.readerId !== undefined && reader.reader_id === query.readerId) ||
@@ -36,9 +30,6 @@ export default {
         state.readers.splice(index, 1, updatedReader);
       }
     },
-    DELETE_READER(state: { readers: ReaderList }, readerId: number): void {
-      state.readers = state.readers.filter(reader => reader.reader_id !== readerId);
-    }
   },
   actions: {
     async getUserInfo({ commit }: { commit: Commit }, { all, readerId }: { all: boolean, readerId?: number }): Promise<void> {

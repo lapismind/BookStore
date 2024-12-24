@@ -3,7 +3,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
       <div class="navbar-logo">
-        <img src="@/assets/book.svg" alt="Logo" class="logo" />
+        <img src="../../public/bookstore.svg" alt="Logo" class="logo" />
       </div>
       <div class="navbar-title">
         <h1>在线书店</h1>

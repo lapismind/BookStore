@@ -23,7 +23,7 @@
       </router-link>
       <router-link to="/search" class="nav-link">
         <img src="@/assets/search.svg" alt="搜索" class="icon" />
-        <span class="nav-text">搜索</span>
+        <span class="nav-text">全局搜索</span>
       </router-link>
       <router-link to="/home" class="nav-link">
         <img src="@/assets/exit.svg" alt="退出管理页面" class="icon" />
@@ -42,11 +42,11 @@
           <th>订单时间</th>
           <th>收货地址</th>
           <th>状态</th>
-          <th>操作</th>
+          <th>待发货</th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="order in paginatedOrders" :key="order.order_id">
+        <tr v-for="order in sortedOrders" :key="order.order_id">
           <td>{{ order.order_id }}</td>
           <td>{{ order.book_id }}</td>
           <td>{{ order.reader_id }}</td>
@@ -54,16 +54,9 @@
           <td>{{ order.price }}</td>
           <td>{{ formatDate(new Date(order.order_date)) }}</td>
           <td>{{ order.shipping_address }}</td>
+          <td>{{ order.status }}</td>
           <td>
-            <select v-model="order.status" @change="updateOrderStatus(order)">
-              <option value="pending">Pending</option>
-              <option value="shipped">Shipped</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </td>
-          <td>
-            <button @click="shipOrder(order.order_id)" class="action-button">发货</button>
-            <button @click="receiveOrder(order.order_id)" class="action-button">收货</button>
+            <button v-if="order.status === 'pending'" @click="shipOrder(order.order_id)" class="action-button">发货</button>
           </td>
         </tr>
         </tbody>
@@ -101,6 +94,14 @@ const paginatedOrders = computed(() => {
   return orders.value.slice(start, end);
 });
 
+const sortedOrders = computed(() => {
+  return paginatedOrders.value.sort((a: Order, b: Order) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+    return 0;
+  });
+});
+
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
@@ -113,16 +114,8 @@ const nextPage = () => {
   }
 };
 
-const updateOrderStatus = (order: Order) => {
-  store.dispatch('order/updateOrder', order);
-};
-
 const shipOrder = (orderId: number) => {
   store.dispatch('order/shipOrder', orderId);
-};
-
-const receiveOrder = (orderId: number) => {
-  store.dispatch('order/receiveOrder', orderId);
 };
 
 const formatDate = (date: Date): string => {

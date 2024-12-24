@@ -102,7 +102,6 @@ const handleClose = () => {
   emit('close');
 };
 
-// Pagination logic
 const currentPage = ref(1);
 const recordsPerPage = 6;
 
