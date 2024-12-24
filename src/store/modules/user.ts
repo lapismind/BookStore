@@ -1,7 +1,6 @@
-// store/modules/user.ts
 import { Commit } from 'vuex';
 import { Reader, ReaderList } from './types';
-import axios from 'axios';
+import apiClient from '@/api';
 
 export default {
   namespaced: true,
@@ -45,11 +44,11 @@ export default {
     async getUserInfo({ commit }: { commit: Commit }, { all, readerId }: { all: boolean, readerId?: number }): Promise<void> {
       try {
         if (all) {
-          const response = await axios.get('/user/get_user_info/all');
-          commit('SET_READERS', response.data);
+          const response = await apiClient.get('/user/query');
+          commit('SET_READERS', response.data.users);
         } else if (readerId !== undefined) {
-          const response = await axios.get(`/user/get_user_info/${readerId}`);
-          commit('SET_READERS', [response.data]);
+          const response = await apiClient.get(`/user/query?reader_id=${readerId}`);
+          commit('SET_READERS', [response.data.users]);
         }
       } catch (error) {
         console.error('Failed to fetch user info:', error);
@@ -58,8 +57,8 @@ export default {
     },
     async register({ commit }: { commit: Commit }, reader: Reader): Promise<void> {
       try {
-        await axios.post('/user/register', reader);
-        commit('ADD_READER', reader);
+        const response = await apiClient.post('/user/register', reader);
+        commit('ADD_READER', response.data);
       } catch (error) {
         console.error('Failed to register user:', error);
         throw error;
@@ -67,7 +66,7 @@ export default {
     },
     async login({ commit }: { commit: Commit }, credentials: { user_id: string, password: string }): Promise<boolean> {
       try {
-        const response = await axios.post('/user/login', credentials);
+        const response = await apiClient.post('/user/login', credentials);
         return response.data.success;
       } catch (error) {
         console.error('Failed to login:', error);
@@ -76,8 +75,8 @@ export default {
     },
     async changeUserInfo({ commit }: { commit: Commit }, reader: Reader): Promise<void> {
       try {
-        await axios.put(`/user/change_user_info/${reader.reader_id}`, reader);
-        commit('UPDATE_READER', reader);
+        const response = await apiClient.put(`/user/update_balance`, reader);
+        commit('UPDATE_READER', response.data);
       } catch (error) {
         console.error('Failed to change user info:', error);
         throw error;

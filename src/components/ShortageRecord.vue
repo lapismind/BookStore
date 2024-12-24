@@ -8,15 +8,23 @@
         <div class="form-row">
           <div class="form-group">
             <label class="inline-label" for="bookId">书籍ID:</label>
-            <input type="number" id="bookId" v-model.number="newShortageRecord.book_id" required />
+            <input type="text" id="bookId" v-model="newShortageRecord.book_id" required />
+          </div>
+          <div class="form-group">
+            <label class="inline-label" for="seriesId">系列ID:</label>
+            <input type="number" id="seriesId" v-model.number="newShortageRecord.series_id" required />
+          </div>
+          <div class="form-group">
+            <label class="inline-label" for="publisher">出版社:</label>
+            <input type="text" id="publisher" v-model="newShortageRecord.publisher" required />
+          </div>
+          <div class="form-group">
+            <label class="inline-label" for="supplier">供应商:</label>
+            <input type="text" id="supplier" v-model="newShortageRecord.supplier" required />
           </div>
           <div class="form-group">
             <label class="inline-label" for="quantity">缺货数目:</label>
             <input type="number" id="quantity" v-model.number="newShortageRecord.quantity" required />
-          </div>
-          <div class="form-group book-title-group">
-            <label class="inline-label" for="bookTitle">书籍标题:</label>
-            <input type="text" id="bookTitle" :value="bookTitle" readonly />
           </div>
           <button type="submit" class="action-button">登记</button>
         </div>
@@ -28,7 +36,9 @@
         <tr>
           <th>缺书登记ID</th>
           <th>书ID</th>
-          <th>供书商</th>
+          <th>系列ID</th>
+          <th>出版社</th>
+          <th>供应商</th>
           <th>数目</th>
           <th>登记日期</th>
           <th>处理状态</th>
@@ -38,6 +48,8 @@
         <tr v-for="record in paginatedRecords" :key="record.shortage_id">
           <td>{{ record.shortage_id }}</td>
           <td>{{ record.book_id }}</td>
+          <td>{{ record.series_id }}</td>
+          <td>{{ record.publisher }}</td>
           <td>{{ record.supplier }}</td>
           <td>{{ record.quantity }}</td>
           <td>{{ record.record_date }}</td>
@@ -73,19 +85,16 @@ const store = useStore();
 
 const newShortageRecord = ref<BookShortage>({
   shortage_id: 0,
-  book_id: 'ISBN',
+  book_id: '',
+  series_id: 0,
+  publisher: '',
   supplier: '',
   quantity: 0,
-  record_date: new Date(),
+  record_date: new Date().toISOString(),
   processed: false,
 });
 
 const shortageRecords = computed(() => store.getters['record/shortageRecords'] || []);
-
-const bookTitle = computed(() => {
-  const book = store.getters['book/getBookById'](newShortageRecord.value.book_id);
-  return book ? book.title : '未知书籍';
-});
 
 onMounted(async () => {
   await store.dispatch('record/fetchShortageRecords');
@@ -95,14 +104,16 @@ const addShortageRecord = async () => {
   try {
     const newRecord = { ...newShortageRecord.value };
     newRecord.shortage_id = Math.max(...shortageRecords.value.map((r: BookShortage) => r.shortage_id), 0) + 1;
-    newRecord.record_date = new Date();
+    newRecord.record_date = new Date().toISOString();
     await store.dispatch('record/addShortageRecord', newRecord);
     newShortageRecord.value = {
       shortage_id: 0,
-      book_id: 'ISBN',
+      book_id: '',
+      series_id: 0,
+      publisher: '',
       supplier: '',
       quantity: 0,
-      record_date: new Date(),
+      record_date: new Date().toISOString(),
       processed: false,
     };
   } catch (error) {
@@ -178,18 +189,6 @@ const prevPage = () => {
 .inline-label {
   margin-right: 10px;
   white-space: nowrap;
-}
-
-#bookId, #quantity {
-  width: 60px; /* Adjusted width */
-}
-
-#bookTitle {
-  flex: 1; /* Take remaining space */
-}
-
-.form-group.book-title-group {
-  flex: 1; /* Take half the length */
 }
 
 table {

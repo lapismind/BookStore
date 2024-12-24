@@ -62,7 +62,8 @@
             </select>
           </td>
           <td>
-            <button @click="deleteOrder(order.order_id)" class="action-button">删除</button>
+            <button @click="shipOrder(order.order_id)" class="action-button">发货</button>
+            <button @click="receiveOrder(order.order_id)" class="action-button">收货</button>
           </td>
         </tr>
         </tbody>
@@ -116,8 +117,12 @@ const updateOrderStatus = (order: Order) => {
   store.dispatch('order/updateOrder', order);
 };
 
-const deleteOrder = (orderId: number) => {
-  store.dispatch('order/deleteOrder', orderId);
+const shipOrder = (orderId: number) => {
+  store.dispatch('order/shipOrder', orderId);
+};
+
+const receiveOrder = (orderId: number) => {
+  store.dispatch('order/receiveOrder', orderId);
 };
 
 const formatDate = (date: Date): string => {

@@ -40,9 +40,17 @@
         <input type="text" id="name" v-model="newSupplier.name" required />
       </div>
       <div class="form-group">
-        <label for="supplyInfo">供应信息:</label>
-        <input type="text" id="supplyInfo" v-model="newSupplier.supply_info" required />
+        <label for="bookList">书籍列表:</label>
+        <input type="text" id="bookList" v-model="newBookId" placeholder="书籍ID" />
+        <input type="text" v-model="newSeriesId" placeholder="系列ID" />
+        <button type="button" @click="addBookToList">添加书籍</button>
       </div>
+      <ul>
+        <li v-for="(book, index) in newSupplier.book_list" :key="index">
+          {{ book.book_id }} - {{ book.series_id }}
+          <button type="button" @click="removeBookFromList(index)">移除</button>
+        </li>
+      </ul>
       <button type="submit" class="action-button">新增</button>
     </form>
 
@@ -52,14 +60,20 @@
       <tr>
         <th>供应商ID</th>
         <th>名称</th>
-        <th>供应信息</th>
+        <th>书籍列表</th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="supplier in suppliers" :key="supplier.supplier_id">
         <td>{{ supplier.supplier_id }}</td>
         <td>{{ supplier.name }}</td>
-        <td>{{ supplier.supply_info }}</td>
+        <td>
+          <ul>
+            <li v-for="book in supplier.book_list" :key="book.book_id">
+              {{ book.book_id }} - {{ book.series_id }}
+            </li>
+          </ul>
+        </td>
       </tr>
       </tbody>
     </table>
@@ -76,8 +90,11 @@ const store = useStore();
 const newSupplier = ref<Supplier>({
   supplier_id: 0,
   name: '',
-  supply_info: '',
+  book_list: [],
 });
+
+const newBookId = ref('');
+const newSeriesId = ref('');
 
 const suppliers = computed(() => store.getters['supplier/suppliers']);
 
@@ -85,13 +102,28 @@ onMounted(async () => {
   await store.dispatch('supplier/fetchSuppliers');
 });
 
+const addBookToList = () => {
+  if (newBookId.value && newSeriesId.value) {
+    newSupplier.value.book_list.push({
+      book_id: newBookId.value,
+      series_id: Number(newSeriesId.value),
+    });
+    newBookId.value = '';
+    newSeriesId.value = '';
+  }
+};
+
+const removeBookFromList = (index: number) => {
+  newSupplier.value.book_list.splice(index, 1);
+};
+
 const addSupplier = async () => {
   try {
     await store.dispatch('supplier/addSupplier', newSupplier.value);
     newSupplier.value = {
       supplier_id: 0,
       name: '',
-      supply_info: '',
+      book_list: [],
     };
   } catch (error) {
     console.error('Failed to add supplier:', error);

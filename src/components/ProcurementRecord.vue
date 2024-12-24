@@ -8,15 +8,15 @@
         <div class="form-row">
           <div class="form-group">
             <label class="inline-label" for="bookId">书籍ID:</label>
-            <input type="number" id="bookId" v-model.number="newOrder.book_id" required />
+            <input type="text" id="bookId" v-model="newOrder.book_id" required />
+          </div>
+          <div class="form-group">
+            <label class="inline-label" for="seriesId">系列ID:</label>
+            <input type="number" id="seriesId" v-model.number="newOrder.series_id" required />
           </div>
           <div class="form-group">
             <label class="inline-label" for="quantity">数量:</label>
             <input type="number" id="quantity" v-model.number="newOrder.quantity" required />
-          </div>
-          <div class="form-group book-title-group">
-            <label class="inline-label" for="bookTitle">书籍标题:</label>
-            <input type="text" id="bookTitle" :value="bookTitle" readonly />
           </div>
           <button type="submit" class="action-button">新增</button>
         </div>
@@ -28,20 +28,18 @@
         <tr>
           <th>采购订单ID</th>
           <th>书ID</th>
+          <th>系列ID</th>
           <th>数量</th>
           <th>状态</th>
-          <th>操作</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="record in paginatedRecords" :key="record.procurement_order_id">
           <td>{{ record.procurement_order_id }}</td>
           <td>{{ record.book_id }}</td>
+          <td>{{ record.series_id }}</td>
           <td>{{ record.quantity }}</td>
           <td>{{ record.status }}</td>
-          <td>
-            <button @click="editOrder(record)">修改</button>
-          </td>
         </tr>
         </tbody>
       </table>
@@ -59,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import type { ProcurementOrder } from '@/store/modules/types';
 
@@ -73,19 +71,13 @@ const store = useStore();
 
 const newOrder = ref<ProcurementOrder>({
   procurement_order_id: 0,
-  book_id: 'ISBN',
+  book_id: '',
+  series_id: 0,
   quantity: 0,
-  status: 'processing',
+  status: 'pending',
 });
 
-const bookTitle = computed(() => {
-  const book = store.getters['book/getBookById'](newOrder.value.book_id);
-  return book ? book.title : '未知书籍';
-});
-
-const procurementOrders = computed(() => {
-  return store.getters['procure/procurementOrders'] || [];
-});
+const procurementOrders = computed(() => store.getters['procure/procurementOrders'] || []);
 
 onMounted(async () => {
   await store.dispatch('procure/fetchProcurementOrders');
@@ -96,20 +88,13 @@ const addProcurementOrder = async () => {
     await store.dispatch('procure/addProcurementOrder', newOrder.value);
     newOrder.value = {
       procurement_order_id: 0,
-      book_id: 'ISBN',
+      book_id: '',
+      series_id: 0,
       quantity: 0,
-      status: 'processing',
+      status: 'pending',
     };
   } catch (error) {
     console.error('Failed to add procurement order:', error);
-  }
-};
-
-const editOrder = async (order: ProcurementOrder) => {
-  try {
-    await store.dispatch('procure/updateProcurementOrder', order);
-  } catch (error) {
-    console.error('Failed to update procurement order:', error);
   }
 };
 
@@ -117,6 +102,7 @@ const handleClose = () => {
   emit('close');
 };
 
+// Pagination logic
 const currentPage = ref(1);
 const recordsPerPage = 6;
 

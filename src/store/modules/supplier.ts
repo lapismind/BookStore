@@ -1,5 +1,5 @@
 import { GetterTree, MutationTree, ActionTree, Module, ActionContext } from 'vuex';
-import axios from 'axios';
+import apiClient from '@/api';
 import { Supplier } from '@/store/modules/types';
 
 interface SupplierState {
@@ -26,8 +26,8 @@ const mutations: MutationTree<SupplierState> = {
 const actions: ActionTree<SupplierState, any> = {
   async addSupplier({ commit }: ActionContext<SupplierState, any>, supplier: Supplier) {
     try {
-      const response = await axios.post('/supplier/add', supplier);
-      commit('ADD_SUPPLIER', response.data);
+      const response = await apiClient.post('/supplier/add', supplier);
+      commit('ADD_SUPPLIER', response.data.supplier);
     } catch (error) {
       console.error('Failed to add supplier:', error);
       throw error;
@@ -35,8 +35,8 @@ const actions: ActionTree<SupplierState, any> = {
   },
   async fetchSuppliers({ commit }: ActionContext<SupplierState, any>) {
     try {
-      const response = await axios.get('/supplier/get');
-      commit('SET_SUPPLIERS', response.data);
+      const response = await apiClient.get('/supplier/query');
+      commit('SET_SUPPLIERS', response.data.suppliers);
     } catch (error) {
       console.error('Failed to fetch suppliers:', error);
       throw error;

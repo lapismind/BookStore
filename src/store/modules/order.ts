@@ -1,7 +1,6 @@
-// store/modules/order.ts
 import { GetterTree, MutationTree, ActionTree } from 'vuex';
 import { Order } from '@/store/modules/types';
-import axios from 'axios';
+import apiClient from '@/api';
 
 interface OrderState {
   orders: Order[];
@@ -24,8 +23,8 @@ const getters: GetterTree<OrderState, any> = {
 const actions: ActionTree<OrderState, any> = {
   async addOrder({ commit }, order: Order) {
     try {
-      await axios.post('/order/add', order);
-      commit('ADD_ORDER', order);
+      const response = await apiClient.post('/order/add', order);
+      commit('ADD_ORDER', response.data);
     } catch (error) {
       console.error('Failed to add order:', error);
       throw error;
@@ -33,23 +32,28 @@ const actions: ActionTree<OrderState, any> = {
   },
   async fetchOrders({ commit }) {
     try {
-      const response = await axios.get('/order/get');
-      commit('SET_ORDERS', response.data);
-    } catch (error : any) {
-      if (error.response && error.response.status === 404) {
-        commit('SET_ORDERS', []); // Set orders to an empty array if 404
-      } else {
-        console.error('Failed to fetch orders:', error);
-        throw error;
-      }
+      const response = await apiClient.get('/order/list');
+      commit('SET_ORDERS', response.data.orders);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      throw error;
     }
   },
-  async updateOrder({ commit }, updatedOrder: Order) {
+  async shipOrder({ commit }, orderId: number) {
     try {
-      await axios.put(`/order/change/${updatedOrder.order_id}`, updatedOrder);
-      commit('UPDATE_ORDER', updatedOrder);
+      const response = await apiClient.post('/order/ship', { order_id: orderId });
+      commit('UPDATE_ORDER', response.data);
     } catch (error) {
-      console.error('Failed to update order:', error);
+      console.error('Failed to ship order:', error);
+      throw error;
+    }
+  },
+  async receiveOrder({ commit }, orderId: number) {
+    try {
+      const response = await apiClient.post('/order/receive', { order_id: orderId });
+      commit('UPDATE_ORDER', response.data);
+    } catch (error) {
+      console.error('Failed to receive order:', error);
       throw error;
     }
   },

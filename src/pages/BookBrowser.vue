@@ -20,7 +20,6 @@
         v-for="book in books"
         :key="book.book_id"
         :book="book"
-        v-if="reader"
         :reader="reader"
         @update-reader="updateReader"
       />
@@ -28,47 +27,39 @@
   </div>
 </template>
 
-<script>
-import { mapState } from 'vuex';
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import { useStore } from 'vuex';
 import BookDetails from "@/components/BookDetails.vue";
 import ReaderInfo from "@/components/ReaderInfo.vue";
 import Dropdown from "@/components/Dropdown.vue";
+import { Book, Reader } from '@/store/modules/types';
 
-export default {
-  components: {
-    BookDetails,
-    ReaderInfo,
-    Dropdown,
-  },
-  data() {
-    return {
-      reader: null,
-    };
-  },
-  computed: {
-    ...mapState('book', ['books']),
-    ...mapState('user', ['readers']),
-  },
-  watch: {
-    readers: {
-      immediate: true,
-      handler(newReaders) {
-        if (newReaders.length > 0) {
-          this.reader = newReaders[0];
-        }
-      },
-    },
-  },
-  methods: {
-    updateReader(updatedReader) {
-      this.$store.commit('user/UPDATE_READER', updatedReader);
-      this.reader = updatedReader;
-    },
-  },
-  created() {
-    this.$store.dispatch('user/fetchReaders');
-  },
+const store = useStore();
+
+const reader = ref<Reader>({
+  reader_id: 1,
+  user_id: '',
+  address: '',
+  balance: 0,
+  credit_level: 0,
+});
+
+const books = computed<Book[]>(() => store.state.book.books);
+const readers = computed<Reader[]>(() => store.state.user.readers);
+
+watch(readers, (newReaders) => {
+  if (newReaders.length > 0) {
+    reader.value = newReaders[0];
+  }
+}, { immediate: true });
+
+const updateReader = (updatedReader: Reader) => {
+  store.commit('user/UPDATE_READER', updatedReader);
+  reader.value = updatedReader;
 };
+
+store.dispatch('user/getUserInfo', { all: true });
 </script>
 
 <style scoped>

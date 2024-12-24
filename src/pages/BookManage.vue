@@ -102,7 +102,7 @@ export default {
   },
   methods: {
     addBook(newBook) {
-      this.$store.commit('book/add_book', newBook);
+      this.$store.commit('book/addBook', newBook);
     },
     nextPage() {
       if (this.currentPage < this.totalPages) {

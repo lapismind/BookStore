@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+import { Book } from '@/store/modules/types';
 
 const store = useStore();
 
@@ -12,7 +13,7 @@ const searchQuery = ref({
   author: '',
 });
 
-const searchBooks = computed(() => {
+const searchBooks = computed<Book[]>(() => {
   return store.getters['book/searchBooks'](searchQuery.value);
 });
 

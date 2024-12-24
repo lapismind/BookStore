@@ -19,19 +19,20 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits, computed } from "vue";
 import { useStore } from 'vuex';
-import { Order } from '@/store/modules/types';
+import { Order, Reader } from "@/store/modules/types";
 
 const props = defineProps<{
   visible: boolean;
+  reader: Reader;
 }>();
 
 const emit = defineEmits(['close']);
 
 const store = useStore();
 
-const orders : Order[] = store.getters['order/orders'];
+const orders = computed<Order[]>(() => store.getters['order/getOrdersByReaderId'](props.reader.reader_id));
 
 const closeModal = () => {
   emit('close');

@@ -1,5 +1,5 @@
 import { Book, BookList } from '@/store/modules/types';
-import axios from 'axios';
+import apiClient from '@/api';
 import { ActionContext } from 'vuex';
 
 interface State {
@@ -37,29 +37,21 @@ export default {
     addBook(state: State, book: Book) {
       state.books.push(book);
     },
-    deleteBook(state: State, bookId: string) {
-      const index = state.books.findIndex((book: Book) => book.book_id === bookId);
-      state.books.splice(index, 1);
-    },
-    updateBook(state: State, book: Book) {
-      const index = state.books.findIndex((b: Book) => b.book_id === book.book_id);
-      state.books.splice(index, 1, book);
-    },
   },
   actions: {
-    async fetchBookInfo({ commit }: ActionContext<State, unknown>) {
+    async fetchBooks({ commit }: ActionContext<State, unknown>) {
       try {
-        const response = await axios.get('/book/get_book_info');
-        commit('setBooks', response.data);
+        const response = await apiClient.post('/book/get', {});
+        commit('setBooks', response.data.books);
       } catch (error) {
-        console.error('Failed to fetch book info:', error);
+        console.error('Failed to fetch books:', error);
         throw error;
       }
     },
     async addBook({ commit }: ActionContext<State, unknown>, book: Book) {
       try {
-        await axios.post('/book/add_book', book);
-        commit('addBook', book);
+        const response = await apiClient.post('/book/add', book);
+        commit('addBook', response.data);
       } catch (error) {
         console.error('Failed to add book:', error);
         throw error;

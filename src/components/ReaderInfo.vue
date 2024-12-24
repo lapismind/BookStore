@@ -24,62 +24,61 @@
       </a>
     </div>
     <!-- MyOrder 弹窗 -->
-    <MyOrder :visible="isMyOrderModalVisible" :orders="orders" @close="isMyOrderModalVisible = false" />
+    <MyOrder :visible="isMyOrderModalVisible" :reader="reader" @close="isMyOrderModalVisible = false" />
     <!-- BuyModal 弹窗 -->
     <BuyModal v-if="selectedBook" :visible="isBuyModalVisible" :book="selectedBook" :reader="reader" @cancel="isBuyModalVisible = false" @add-order="addOrder" @update-reader="handleUpdateReader" />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 import MyOrder from "@/components/MyOrder.vue";
 import BuyModal from "@/components/BuyModal.vue";
 import { Reader, Book } from '@/store/modules/types';
+import Order from "@/store/modules/order";
+import store from "@/store";
+import order from "@/store/modules/order";
 
-export default defineComponent({
-  name: "ReaderInfo",
-  components: {
-    MyOrder,
-    BuyModal,
-  },
-  props: {
-    reader: {
-      type: Object as PropType<Reader>,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      isMyOrderModalVisible: false,
-      isBuyModalVisible: false,
-      selectedBook: null as Book | null,
-      orders: [] as any[], // 根据实际情况调整类型
-    };
-  },
-  methods: {
-    handleProfile() {
-      // 处理个人中心逻辑
-    },
-    handleOrders() {
-      this.isMyOrderModalVisible = true;
-    },
-    handleRecharge() {
-      // 处理余额充值逻辑
-    },
-    handleLogout() {
-      const isConfirmed = confirm("真退吗哥？");
-      if (isConfirmed) {
-        this.$router.push('/home');
-      }
-    },
-    addOrder(order: any) {
-      this.orders.push(order);
-    },
-    handleUpdateReader(updatedReader: Reader) {
-      this.$emit('update-reader', updatedReader);
-    },
-  },
-});
+const props = defineProps<{ reader: Reader }>();
+
+const emit = defineEmits(['update-reader']);
+
+const isMyOrderModalVisible = ref(false);
+const isBuyModalVisible = ref(false);
+const selectedBook = ref<Book | null>(null);
+
+const handleProfile = () => {
+  // 处理个人中心逻辑
+};
+
+const handleOrders = () => {
+  isMyOrderModalVisible.value = true;
+};
+
+const handleRecharge = () => {
+  // 处理余额充值逻辑
+};
+
+const handleLogout = () => {
+  const isConfirmed = confirm("真退吗哥？");
+  if (isConfirmed) {
+    window.location.href = '/home';
+  }
+};
+
+const addOrder = async (order: typeof Order) => {
+  try {
+    await store.dispatch('order/addOrder', order);
+    console.log('Order added successfully');
+  } catch (error) {
+    console.error('Failed to add order:', error);
+  }
+};
+
+const handleUpdateReader = (updatedReader: Reader) => {
+  emit('update-reader', updatedReader);
+};
 </script>
 
 <style scoped>
@@ -93,10 +92,10 @@ export default defineComponent({
 }
 
 .reader-header img {
-  width: 100px; /* 根据需要调整图片大小 */
+  width: 100px;
   height: 100px;
-  border-radius: 50%; /* 圆形图片 */
-  object-fit: cover; /* 确保图片内容适应圆形 */
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .reader p {
@@ -127,4 +126,3 @@ export default defineComponent({
   margin: 10px 0;
 }
 </style>
-   

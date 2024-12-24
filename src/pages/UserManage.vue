@@ -31,6 +31,9 @@
       </router-link>
     </div>
     <div class="user-list">
+      <div class="search-container">
+        <input type="text" v-model="searchQuery" placeholder="搜索用户ID或昵称" @input="searchReaders" />
+      </div>
       <table>
         <thead>
         <tr>
@@ -39,6 +42,7 @@
           <th>用户地址</th>
           <th>用户余额</th>
           <th>信用等级</th>
+          <th>操作</th>
         </tr>
         </thead>
         <tbody>
@@ -46,8 +50,14 @@
           <td>{{ reader.reader_id }}</td>
           <td>{{ reader.user_id }}</td>
           <td>{{ reader.address }}</td>
-          <td>{{ reader.balance }}</td>
+          <td>
+            <input type="number" v-model="reader.balance" />
+            <button @click="updateBalance(reader)">更新余额</button>
+          </td>
           <td>{{ reader.credit_level }}</td>
+          <td>
+            <button @click="deleteReader(reader.reader_id)">删除</button>
+          </td>
         </tr>
         </tbody>
       </table>
@@ -57,19 +67,38 @@
         <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
       </div>
     </div>
+    <div class="register-container">
+      <h2>注册新用户</h2>
+      <form @submit.prevent="registerUser">
+        <input type="text" v-model="newReader.user_id" placeholder="用户昵称" required />
+        <input type="text" v-model="newReader.address" placeholder="用户地址" required />
+        <input type="number" v-model="newReader.balance" placeholder="用户余额" required />
+        <input type="number" v-model="newReader.credit_level" placeholder="信用等级" required />
+        <button type="submit">注册</button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
+import { Reader } from '@/store/modules/types';
 
 const store = useStore();
 const currentPage = ref(1);
 const itemsPerPage = 10;
+const searchQuery = ref('');
+const newReader = ref<Reader>({
+  reader_id: 0,
+  user_id: '',
+  address: '',
+  balance: 0,
+  credit_level: 0,
+});
 
 const fetchReaders = () => {
-  store.dispatch('user/fetchReaders');
+  store.dispatch('user/getUserInfo', { all: true });
 };
 
 const readers = computed(() => store.state.user.readers);
@@ -92,6 +121,44 @@ const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
+};
+
+const registerUser = () => {
+  store.dispatch('user/register', newReader.value).then(() => {
+    fetchReaders();
+    resetNewReaderForm();
+  });
+};
+
+const updateBalance = (reader: Reader) => {
+  store.dispatch('user/changeUserInfo', reader).then(() => {
+    fetchReaders();
+  });
+};
+
+const deleteReader = (readerId: number) => {
+  store.commit('user/DELETE_READER', readerId);
+};
+
+const searchReaders = () => {
+  store.dispatch('user/getUserInfo', { all: true }).then(() => {
+    if (searchQuery.value) {
+      const query = { userId: searchQuery.value };
+      store.commit('user/SET_READERS', store.getters['user/searchReaders'](query));
+    } else {
+      fetchReaders();
+    }
+  });
+};
+
+const resetNewReaderForm = () => {
+  newReader.value = {
+    reader_id: 0,
+    user_id: '',
+    address: '',
+    balance: 0,
+    credit_level: 0,
+  };
 };
 
 watch(readers, () => {

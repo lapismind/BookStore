@@ -1,4 +1,3 @@
-<!-- BuyModal.vue -->
 <template>
   <div v-if="visible" class="modal">
     <div class="modal-content">
@@ -9,7 +8,7 @@
           <span class="book-title">{{ book.title }}</span>
         </div>
         <div><strong>出版日期:</strong> {{ book.publication_date }}</div>
-        <div><strong>作者:</strong> {{ book.author }}</div>
+        <div><strong>作者:</strong> {{ book.author.join(', ') }}</div>
         <div><strong>出版商:</strong> {{ book.publisher }}</div>
         <div><strong>简介:</strong> 暂无</div>
         <div><strong>价格:</strong> ¥{{ book.price }}</div>
@@ -36,8 +35,8 @@
         }}
       </div>
       <div class="modal-actions">
-        <button @click="$emit('cancel')">取消</button>
-        <button @click="confirmPurchase">确认购买</button>
+        <button @click="$emit('cancel')" class="action-button">取消</button>
+        <button @click="confirmPurchase" class="action-button">确认购买</button>
       </div>
     </div>
   </div>
@@ -58,7 +57,7 @@ const emit = defineEmits(['cancel', 'update-reader']);
 
 const store = useStore();
 
-const confirmPurchase = () => {
+const confirmPurchase = async () => {
   if (props.reader.balance >= props.book.price) {
     const updatedReader = { ...props.reader, balance: props.reader.balance - props.book.price };
     emit('update-reader', updatedReader);
@@ -67,14 +66,16 @@ const confirmPurchase = () => {
       order_id: Date.now(),
       reader_id: props.reader.reader_id,
       book_id: props.book.book_id,
+      series_id: props.book.series_id,
       quantity: 1,
       price: props.book.price,
-      order_date: new Date(),
+      order_date: new Date().toISOString(),
       shipping_address: props.reader.address,
+      if_paid: true,
       status: 'pending',
     };
 
-    store.dispatch('order/addOrder', order);
+    await store.dispatch('order/addOrder', order);
 
     emit('cancel');
     alert('下单成功！');
@@ -83,7 +84,6 @@ const confirmPurchase = () => {
   }
 };
 </script>
-
 
 <style scoped>
 .modal {
@@ -130,20 +130,5 @@ const confirmPurchase = () => {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
-}
-
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #0056b3;
 }
 </style>

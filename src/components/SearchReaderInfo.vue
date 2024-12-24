@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+import { Reader } from '@/store/modules/types';
 import SearchOrdersInfo from '@/components/SearchOrdersInfo.vue';
 
 const store = useStore();
@@ -47,7 +48,7 @@ const searchQuery = ref({
   userId: '',
 });
 
-const searchReaders = computed(() => {
+const searchReaders = computed<Reader[]>(() => {
   return store.getters['user/searchReaders'](searchQuery.value);
 });
 

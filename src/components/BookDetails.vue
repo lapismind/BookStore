@@ -1,4 +1,3 @@
-// BookDetails.vue
 <template>
   <div v-if="book" class="book-details">
     <!-- 书名 -->
@@ -7,13 +6,13 @@
     <!-- 书籍信息，包括出版时间、作者、丛书号 -->
     <div class="book-info">
       <span class="book-info-item">{{ book.publication_date }}</span>
-      <span class="book-info-item">{{ book.author }}</span>
+      <span class="book-info-item">{{ book.author.join(', ') }}</span>
       <span class="book-info-item">丛书号: {{ book.series_id }}</span>
     </div>
 
     <!-- 关键字 -->
     <div class="book-keywords">
-      <span>关键字: {{ book.keywords }}</span>
+      <span>关键字: {{ book.keywords.join(', ') }}</span>
     </div>
 
     <!-- 价格 -->
@@ -23,7 +22,7 @@
 
     <!-- 购买按钮 -->
     <div>
-      <button @click="showBuyModal = true">购买</button>
+      <button @click="showBuyModal = true">购��</button>
       <BuyModal
         :visible="showBuyModal"
         :book="book"
@@ -36,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, ref } from 'vue';
 import BuyModal from "@/components/BuyModal.vue";
 import { Book, Reader } from '@/store/modules/types';
 
@@ -47,23 +46,32 @@ export default defineComponent({
   },
   props: {
     book: {
-      type: Object as PropType<Book>,
+      type: Object as () => Book,
       required: true,
     },
     reader: {
-      type: Object as PropType<Reader>,
-      required: true,
+      type: Object as () => Reader,
+      default: () => ({
+        reader_id: 1,
+        user_id: '',
+        address: '',
+        balance: 0,
+        credit_level: 0,
+      }),
     },
   },
-  data() {
-    return {
-      showBuyModal: false,
+  emits: ['update-reader'],
+  setup(props, { emit }) {
+    const showBuyModal = ref(false);
+
+    const updateReader = (updatedReader: Reader) => {
+      emit('update-reader', updatedReader);
     };
-  },
-  methods: {
-    updateReader(updatedReader: Reader) {
-      this.$emit('update-reader', updatedReader);
-    },
+
+    return {
+      showBuyModal,
+      updateReader,
+    };
   },
 });
 </script>
