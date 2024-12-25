@@ -1,17 +1,18 @@
 from decimal import Decimal
 from typing import Dict
 
-# 定义信用等级和所需余额的映射关系
+from server.models import *
+
 CREDIT_LEVEL_THRESHOLDS: Dict[int, Decimal] = {
-    1: Decimal('0'),      # 默认等级
-    2: Decimal('1000'),   # 余额超过1000升至2级
-    3: Decimal('5000'),   # 余额超过5000升至3级
-    4: Decimal('10000'),  # 余额超过10000升至4级
+    1: Decimal('0'),
+    2: Decimal('1000'),
+    3: Decimal('5000'),
+    4: Decimal('10000'),
     5: Decimal('50000')
 }
 
 
-def update_credit_level(user: User, db: Session) -> bool:
+def update_credit_level(user: User, db) -> bool:
     """
     检查并更新用户的信用等级
     返回是否发生了更新

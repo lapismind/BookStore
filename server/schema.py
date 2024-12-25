@@ -108,6 +108,20 @@ class UserLogin(BaseModel):
     class Config:
         from_attributes = True
 
+
+class BalanceUpdateRequest(BaseModel):
+    reader_id: int
+    amount: Decimal
+
+
+class GetUser(BaseModel):
+    user_id: Optional[str] = Field(None, description="User ID")
+    reader_id: Optional[int] = Field(None, description="Reader ID")
+
+    class Config:
+        from_attributes = True
+
+
 class UserResponse(BaseModel):
     reader_id: int = Field(..., description="Reader ID")
     user_id: str = Field(..., description="User ID")
