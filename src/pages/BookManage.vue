@@ -75,7 +75,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import AddBookModal from '@/components/AddBookModal.vue';
 
 export default {
@@ -101,8 +101,22 @@ export default {
     },
   },
   methods: {
-    addBook(newBook) {
-      this.$store.commit('book/addBook', newBook);
+    ...mapActions('book', ['fetchBooks', 'addBook']),
+    async addBook(newBook) {
+      try {
+        await this.$store.dispatch('book/addBook', newBook);
+        await this.fetchBooks();
+        newBook.supplier.forEach(async (supplierName) => {
+          const supplier = {
+            supplier_id: Date.now(),
+            name: supplierName,
+            book_list: [{ book_id: newBook.book_id, series_id: newBook.series_id }],
+          };
+          await this.$store.dispatch('supplier/addSupplier', supplier);
+        });
+      } catch (error) {
+        console.error('Failed to add book:', error);
+      }
     },
     nextPage() {
       if (this.currentPage < this.totalPages) {
@@ -114,6 +128,9 @@ export default {
         this.currentPage--;
       }
     },
+  },
+  async mounted() {
+    await this.fetchBooks();
   },
 };
 </script>

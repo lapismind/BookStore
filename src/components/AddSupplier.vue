@@ -8,10 +8,18 @@
           <label for="name">名称:</label>
           <input type="text" v-model="name" required />
         </div>
-        <div>
-          <label for="bookList">书籍列表 (用逗号分隔书籍ID和系列ID):</label>
-          <input type="text" v-model="bookList" required />
+        <div v-for="(book, index) in books" :key="index" class="book-entry">
+          <h3>书籍 {{ index + 1 }}</h3>
+          <div>
+            <label for="book_id">书籍ID:</label>
+            <input type="text" v-model="book.book_id" required />
+          </div>
+          <div>
+            <label for="series_id">系列ID:</label>
+            <input type="number" v-model="book.series_id" required />
+          </div>
         </div>
+        <button type="button" @click="addBook" class="action-button"pnp>添加书籍</button>
         <button type="submit" class="action-button">提交</button>
       </form>
     </div>
@@ -27,16 +35,16 @@ const emit = defineEmits(['close']);
 const store = useStore();
 
 const name = ref('');
-const bookList = ref('');
+const books = ref([{ book_id: '', series_id: 0 }]);
+
+const addBook = () => {
+  books.value.push({ book_id: '', series_id: 0 });
+};
 
 const addSupplier = async () => {
-  const books = bookList.value.split(',').map(item => {
-    const [book_id, series_id] = item.trim().split('-');
-    return { book_id, series_id: parseInt(series_id) };
-  });
-  await store.dispatch('supplier/addSupplier', { name: name.value, book_list: books });
+  await store.dispatch('supplier/addSupplier', { name: name.value, book_list: books.value });
   name.value = '';
-  bookList.value = '';
+  books.value = [{ book_id: '', series_id: 0 }];
   emit('close');
 };
 </script>
@@ -65,6 +73,10 @@ const addSupplier = async () => {
   float: right;
   font-size: 24px;
   cursor: pointer;
+}
+
+.book-entry {
+  margin-bottom: 15px;
 }
 
 .action-button {

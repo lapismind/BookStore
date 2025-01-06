@@ -3,32 +3,8 @@
     <div class="modal-content">
       <h2>缺书登记表</h2>
 
-      <!-- 登记表单 -->
-      <form @submit.prevent="addShortageRecord" class="shortage-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="inline-label" for="bookId">书籍ID:</label>
-            <input type="text" id="bookId" v-model="newShortageRecord.book_id" required />
-          </div>
-          <div class="form-group">
-            <label class="inline-label" for="seriesId">系列ID:</label>
-            <input type="number" id="seriesId" v-model.number="newShortageRecord.series_id" required />
-          </div>
-          <div class="form-group">
-            <label class="inline-label" for="publisher">出版社:</label>
-            <input type="text" id="publisher" v-model="newShortageRecord.publisher" required />
-          </div>
-          <div class="form-group">
-            <label class="inline-label" for="supplier">供应商:</label>
-            <input type="text" id="supplier" v-model="newShortageRecord.supplier" required />
-          </div>
-          <div class="form-group">
-            <label class="inline-label" for="quantity">缺货数目:</label>
-            <input type="number" id="quantity" v-model.number="newShortageRecord.quantity" required />
-          </div>
-          <button type="submit" class="action-button">登记</button>
-        </div>
-      </form>
+      <!-- 一键生成缺书记录按钮 -->
+      <button @click="generateShortageRecord" class="action-button">一键生成缺书记录</button>
 
       <!-- 表格 -->
       <table>
@@ -83,41 +59,27 @@ const emit = defineEmits(['close']);
 
 const store = useStore();
 
-const newShortageRecord = ref<BookShortage>({
-  shortage_id: 0,
-  book_id: '',
-  series_id: 0,
-  publisher: '',
-  supplier: '',
-  quantity: 0,
-  record_date: new Date().toISOString(),
-  processed: false,
-});
-
 const shortageRecords = computed(() => store.getters['record/shortageRecords'] || []);
 
 onMounted(async () => {
   await store.dispatch('record/fetchShortageRecords');
 });
 
-const addShortageRecord = async () => {
+const generateShortageRecord = async () => {
   try {
-    const newRecord = { ...newShortageRecord.value };
-    newRecord.shortage_id = Math.max(...shortageRecords.value.map((r: BookShortage) => r.shortage_id), 0) + 1;
-    newRecord.record_date = new Date().toISOString();
-    await store.dispatch('record/addShortageRecord', newRecord);
-    newShortageRecord.value = {
-      shortage_id: 0,
-      book_id: '',
-      series_id: 0,
-      publisher: '',
-      supplier: '',
+    const newRecord: BookShortage = {
+      shortage_id: Math.max(...shortageRecords.value.map((r: BookShortage) => r.shortage_id), 0) + 1,
+      book_id: '978-3-16-148410-0',
+      series_id: 1,
+      publisher: '湖南科学技术出版社',
+      supplier: ["供应商A", "供应商B"],
       quantity: 0,
       record_date: new Date().toISOString(),
       processed: false,
     };
+    await store.dispatch('record/addShortageRecord', newRecord);
   } catch (error) {
-    console.error('Failed to add shortage record:', error);
+    console.error('Failed to generate shortage record:', error);
   }
 };
 
@@ -171,24 +133,6 @@ const prevPage = () => {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 800px;
-}
-
-.form-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-}
-
-.inline-label {
-  margin-right: 10px;
-  white-space: nowrap;
 }
 
 table {

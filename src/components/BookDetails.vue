@@ -22,7 +22,7 @@
 
     <!-- 购买按钮 -->
     <div>
-      <button @click="showBuyModal = true">购��</button>
+      <button @click="showBuyModal = true">购买</button>
       <BuyModal
         :visible="showBuyModal"
         :book="book"

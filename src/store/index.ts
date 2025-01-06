@@ -1,4 +1,3 @@
-// store/index.ts
 import { createStore } from 'vuex';
 import bookModule from './modules/book';
 import userModule from './modules/user';

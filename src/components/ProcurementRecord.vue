@@ -85,6 +85,7 @@ onMounted(async () => {
 
 const addProcurementOrder = async () => {
   try {
+    newOrder.value.procurement_order_id = Math.max(...procurementOrders.value.map((r: ProcurementOrder) => r.procurement_order_id), 0) + 1;
     await store.dispatch('procure/addProcurementOrder', newOrder.value);
     newOrder.value = {
       procurement_order_id: 0,

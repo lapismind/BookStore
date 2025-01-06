@@ -25,8 +25,13 @@
     </div>
     <!-- MyOrder 弹窗 -->
     <MyOrder :visible="isMyOrderModalVisible" :reader="reader" @close="isMyOrderModalVisible = false" />
-    <!-- BuyModal 弹窗 -->
-    <BuyModal v-if="selectedBook" :visible="isBuyModalVisible" :book="selectedBook" :reader="reader" @cancel="isBuyModalVisible = false" @add-order="addOrder" @update-reader="handleUpdateReader" />
+  </div>
+  <!-- Independent Image Modal -->
+  <div v-if="isImageModalVisible" class="modal">
+    <div class="modal-content">
+      <span class="close" @click="isImageModalVisible = false">&times;</span>
+      <img src="@/assets/charge.jpg" alt="New Image" class="modal-image" />
+    </div>
   </div>
 </template>
 
@@ -34,19 +39,14 @@
 import { ref } from 'vue';
 import { defineProps, defineEmits } from 'vue';
 import MyOrder from "@/components/MyOrder.vue";
-import BuyModal from "@/components/BuyModal.vue";
 import { Reader, Book } from '@/store/modules/types';
-import Order from "@/store/modules/order";
-import store from "@/store";
-import order from "@/store/modules/order";
 
 const props = defineProps<{ reader: Reader }>();
 
 const emit = defineEmits(['update-reader']);
 
 const isMyOrderModalVisible = ref(false);
-const isBuyModalVisible = ref(false);
-const selectedBook = ref<Book | null>(null);
+const isImageModalVisible = ref(false);
 
 const handleProfile = () => {
   // 处理个人中心逻辑
@@ -57,22 +57,13 @@ const handleOrders = () => {
 };
 
 const handleRecharge = () => {
-  // 处理余额充值逻辑
+  isImageModalVisible.value = true;
 };
 
 const handleLogout = () => {
-  const isConfirmed = confirm("真退吗哥？");
+  const isConfirmed = confirm("确认退出？");
   if (isConfirmed) {
     window.location.href = '/home';
-  }
-};
-
-const addOrder = async (order: typeof Order) => {
-  try {
-    await store.dispatch('order/addOrder', order);
-    console.log('Order added successfully');
-  } catch (error) {
-    console.error('Failed to add order:', error);
   }
 };
 
@@ -119,10 +110,55 @@ const handleUpdateReader = (updatedReader: Reader) => {
 .option:hover {
   color: #0056b3;
 }
+
 .divider {
   border: 0;
   height: 1px;
   background-color: #e0e0e0;
   margin: 10px 0;
+}
+
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-image {
+  width: 100%;
+  height: auto;
 }
 </style>

@@ -28,7 +28,7 @@ export interface BookShortage {
   book_id: string;
   series_id: number;
   publisher: string;
-  supplier: string;
+  supplier: string[];
   quantity: number;
   record_date: string;
   processed: boolean;

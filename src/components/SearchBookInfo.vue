@@ -26,16 +26,13 @@
         </div>
         <button type="submit" class="action-button">搜索</button>
       </form>
-      <div v-if="books.length > 0">
+      <div v-if="showResults">
         <h3>搜索结果</h3>
         <ul>
           <li v-for="book in books" :key="book.book_id">
             {{ book.title }} by {{ book.author }}
           </li>
         </ul>
-      </div>
-      <div v-else>
-        <p>未找到书目。</p>
       </div>
     </div>
   </div>
@@ -57,13 +54,14 @@ const searchQuery = ref({
   author: '',
 });
 
+const showResults = ref(false);
+
 const books = computed<Book[]>(() => {
   return store.getters['book/searchBooks'](searchQuery.value);
 });
 
 const performSearch = () => {
-  // Trigger the computed property to update
-  books.value;
+  showResults.value = true;
 };
 </script>
 

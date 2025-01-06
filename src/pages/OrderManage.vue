@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { Order } from '@/store/modules/types';
 
@@ -114,21 +114,28 @@ const nextPage = () => {
   }
 };
 
-const shipOrder = (orderId: number) => {
-  store.dispatch('order/shipOrder', orderId);
+const shipOrder = async (orderId: number) => {
+  try {
+    await store.dispatch('order/shipOrder', orderId);
+    await store.dispatch('order/fetchOrders');
+  } catch (error) {
+    console.error('Failed to ship order:', error);
+  }
 };
 
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString();
 };
 
+onMounted(() => {
+  fetchOrders();
+});
+
 watch(orders, () => {
   if (currentPage.value > totalPages.value) {
     currentPage.value = totalPages.value;
   }
 });
-
-fetchOrders();
 </script>
 
 <style scoped>

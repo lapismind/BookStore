@@ -14,12 +14,6 @@ export default {
     };
   },
   getters: {
-    getBookById: (state: State) => (bookId: string) => {
-      return state.books.find((book: Book) => book.book_id === bookId);
-    },
-    getAllBooks: (state: State) => {
-      return state.books;
-    },
     searchBooks: (state: State) => (query: { id?: string, title?: string, publisher?: string, keywords?: string, author?: string }) => {
       return state.books.filter((book: Book) => {
         return (!query.id || book.book_id.includes(query.id)) &&
@@ -59,3 +53,4 @@ export default {
     },
   },
 };
+
