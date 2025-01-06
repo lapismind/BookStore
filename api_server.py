@@ -1,4 +1,5 @@
 from threading import Lock
+import re
 
 import pyrootutils
 import uvicorn
@@ -35,7 +36,7 @@ class API(ExceptionHandler):
             },
             factory_class=FactoryClass(),
             cors_config={
-                "allow_origins": ["*"],
+                "allow_origins": [re.compile(re.escape("*"))],
                 "allow_methods": ["*"],
                 "allow_headers": ["*"],
             },

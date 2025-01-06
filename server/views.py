@@ -77,7 +77,7 @@ async def add_book(req: Annotated[BookCreate, Body(exclusive=True)]):
         db.rollback()
         logger.error(f"Error adding book: {e}")
         raise HTTPException(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Error adding book")
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content="Error adding book")
     finally:
         db.close()
 
@@ -124,7 +124,7 @@ async def get_book(req: Annotated[BookGet, Body(exclusive=True)]):
         if not books:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                message="No books found matching the criteria"
+                content="No books found matching the criteria"
             )
 
         response_data = [
@@ -190,7 +190,7 @@ async def register_user(req: Annotated[UserCreate, Body(exclusive=True)]):
         if existing_user:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
-                message="User ID already exists"
+                content="User ID already exists"
             )
 
         new_user = User(
@@ -262,7 +262,7 @@ async def login_user(req: Annotated[UserLogin, Body(exclusive=True)]):
         if not user:
             raise HTTPException(
                 status_code=HTTPStatus.UNAUTHORIZED,
-                message="Invalid user ID or password"
+                content="Invalid user ID or password"
             )
 
         response_data = UserResponse(
@@ -291,13 +291,10 @@ async def login_user(req: Annotated[UserLogin, Body(exclusive=True)]):
         )
     finally:
         db.close()
-
+    
 
 @routes.http.post("/user/update_balance")
-async def update_balance(
-    reader_id: int,
-    amount: Decimal
-):
+async def update_balance(req: Annotated[BalanceUpdateRequest, Body(exclusive=True)]):
     '''
         POST /user/update_balance
         {
@@ -318,6 +315,9 @@ async def update_balance(
             }
         }
     '''
+    reader_id = req.reader_id
+    amount = req.amount
+    
     SessionLocal = request.app.state.SessionLocal
     db = SessionLocal()
     try:
@@ -325,10 +325,11 @@ async def update_balance(
         if not user:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                message="User not found"
+                content="User not found"
             )
         
         user.balance += amount
+        print('test')
 
         credit_level_updated = update_credit_level(user, db)
 
@@ -372,7 +373,7 @@ async def query_user(
         records = query.all()
         if not records:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail="No matching users found"
+                status_code=HTTPStatus.NOT_FOUND, content="No matching users found"
             )
 
         data = [UserResponse.from_orm(u).model_dump() for u in records]
@@ -387,7 +388,7 @@ async def query_user(
         logger.error(f"Error querying user: {e}")
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            detail="Error querying user"
+            content="Error querying user"
         )
     finally:
         db.close()
@@ -424,11 +425,11 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
         
         if not book:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                message="Book not found"
+                404,
+                content="Book not found"
             )
         
-        if book.stock < req.quantity:
+        if book.total_stock < req.quantity:
             order = Order(
                 reader_id=req.reader_id,
                 book_id=req.book_id,
@@ -458,37 +459,36 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
         
         # Determine discount and overdraft allowance based on user's credit level
         discount_map = {
-            1: 0.10,
-            2: 0.15,
-            3: 0.15,
-            4: 0.20,
-            5: 0.25
+            1: Decimal('0.10'),
+            2: Decimal('0.15'),
+            3: Decimal('0.15'),
+            4: Decimal('0.20'),
+            5: Decimal('0.25')
         }
-
         overdraft_map = {
-            1: 0,
-            2: 0,
-            3: 1000,
-            4: 2000,
-            5: float('inf')
+            1: Decimal('0'),
+            2: Decimal('0'),
+            3: Decimal('1000'),
+            4: Decimal('2000'),
+            5: Decimal('Infinity')
         }
         overdraft_allowed_levels = {3, 4, 5}
         
-        discount_rate = discount_map.get(user.credit_level, 0.0)
-        discounted_price = book.price * req.quantity * (1 - discount_rate)
-        dilivery_balance = user.balance + overdraft_map.get(user.credit_level, 0.0)
+        discount_rate = discount_map.get(user.credit_level, Decimal('0'))
+        discounted_price = book.price * Decimal(req.quantity) * (Decimal('1') - discount_rate)
+        dilivery_balance = user.balance + overdraft_map.get(user.credit_level, Decimal('0'))
 
-        if book.price > dilivery_balance or (req.if_paid & user.credit_level not in overdraft_allowed_levels):
+        if book.price > dilivery_balance or (req.if_paid and user.credit_level not in overdraft_allowed_levels):
             order = Order(
-            reader_id=req.reader_id,
-            book_id=req.book_id,
-            series_id=req.series_id,
-            quantity=req.quantity,
-            price=discounted_price,
-            order_date=datetime.now(),
-            description=req.description,
-            shipping_address=req.shipping_address,
-            status="cancelled"
+                reader_id=req.reader_id,
+                book_id=req.book_id,
+                series_id=req.series_id,
+                quantity=req.quantity,
+                price=discounted_price,
+                order_date=datetime.now(),
+                description=req.description,
+                shipping_address=req.shipping_address,
+                status="cancelled"
             )
             db.add(order)
             db.commit()
@@ -535,13 +535,16 @@ async def create_order(req: Annotated[OrderCreate, Body(exclusive=True)]):
         )
         
     except HTTPException as he:
-        raise he
+        raise HTTPException(
+            he.status_code,
+            content=str(he.content)
+        )
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating order: {e}")
         raise HTTPException(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            message="Error processing order"
+            500,
+            content=f"Error processing order: {e}"
         )
     finally:
         db.close()
@@ -570,7 +573,7 @@ async def ship_order(req: Annotated[OrderStatusUpdate, Body(exclusive=True)]):
         if not order:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                message="Order not found"
+                content="Order not found"
             )
         
         if order.status != "pending":
@@ -960,13 +963,13 @@ async def complete_procurement(req: Annotated[ProcureComplete, Body(exclusive=Tr
         if not procure:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                message="Procurement order not found"
+                content="Procurement order not found"
             )
         
         if procure.status == "completed":
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
-                message="Procurement order already completed"
+                content="Procurement order already completed"
             )
         
         book = db.query(Book).filter(
@@ -1129,7 +1132,7 @@ async def create_supplier(req: Annotated[SupplierCreate, Body(exclusive=True)]):
         if len(existing_books) != len(book_ids):
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
-                message="Some books in the list do not exist"
+                content="Some books in the list do not exist"
             )
         
         existing_supplier = db.query(Supplier).filter(
@@ -1139,7 +1142,7 @@ async def create_supplier(req: Annotated[SupplierCreate, Body(exclusive=True)]):
         if existing_supplier:
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
-                message="Supplier name already exists"
+                content="Supplier name already exists"
             )
         
         supplier = Supplier(
@@ -1259,7 +1262,7 @@ async def query_suppliers(
         
         suppliers = query.all()
         
-        book_details = {}
+        book_contents = {}
         book_ids = set()
         for supplier in suppliers:
             for book in supplier.book_list:
@@ -1269,7 +1272,7 @@ async def query_suppliers(
             books = db.query(Book).filter(
                 tuple_(Book.book_id, Book.series_id).in_(book_ids)
             ).all()
-            book_details = {
+            book_contents = {
                 (book.book_id, book.series_id): {
                     "title": book.title,
                     "author": book.author,
@@ -1289,7 +1292,7 @@ async def query_suppliers(
                             {
                                 "book_id": book['book_id'],
                                 "series_id": book['series_id'],
-                                **book_details.get((book['book_id'], book['series_id']), {})
+                                **book_contents.get((book['book_id'], book['series_id']), {})
                             }
                             for book in s.book_list
                         ]
